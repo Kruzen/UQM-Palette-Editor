@@ -364,7 +364,7 @@ namespace UQMPalEd {
 			this->CiT_value->AutoSize = true;
 			this->CiT_value->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 8.25F, System::Drawing::FontStyle::Bold, System::Drawing::GraphicsUnit::Point,
 				static_cast<System::Byte>(204)));
-			this->CiT_value->Location = System::Drawing::Point(116, 56);
+			this->CiT_value->Location = System::Drawing::Point(113, 56);
 			this->CiT_value->Name = L"CiT_value";
 			this->CiT_value->Size = System::Drawing::Size(14, 13);
 			this->CiT_value->TabIndex = 12;
@@ -373,7 +373,7 @@ namespace UQMPalEd {
 			// CiT_title
 			// 
 			this->CiT_title->AutoSize = true;
-			this->CiT_title->Location = System::Drawing::Point(9, 56);
+			this->CiT_title->Location = System::Drawing::Point(6, 56);
 			this->CiT_title->Name = L"CiT_title";
 			this->CiT_title->Size = System::Drawing::Size(112, 13);
 			this->CiT_title->TabIndex = 11;
@@ -414,7 +414,7 @@ namespace UQMPalEd {
 			this->MinimizeBox = false;
 			this->Name = L"MainForm";
 			this->StartPosition = System::Windows::Forms::FormStartPosition::CenterScreen;
-			this->Text = L"Ur-Quan Masters Palette Editor v0.0.5";
+			this->Text = L"Ur-Quan Masters Palette Editor v0.0.6";
 			this->menuStrip->ResumeLayout(false);
 			this->menuStrip->PerformLayout();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->tableViewer))->EndInit();

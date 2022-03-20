@@ -28,6 +28,7 @@
 #define BLUE 2
 #define MAX(a,b) (a > b ? a : b)
 #define MIN(a,b) (a < b ? a : b)
+#define CC5TO8(c) (((c) << 3) | ((c) >> 2))// from UQM source code
 
 using namespace System;
 using namespace System::Drawing;
@@ -45,6 +46,7 @@ namespace CTable
 	private:
 		int length;
 		array<Color>^ table;
+		array<Color>^ p_table;// in-game colors for planets
 	public:
 		Segment(void);
 		~Segment(void);
@@ -52,6 +54,8 @@ namespace CTable
 		void setSegLength(int l);
 		void fillTable(array<Byte>^ b);
 		array<Color>^ returnTable(void);
+		void tableToPTable(void);
+		array<Color>^ returnPTable(void);
 	protected:
 		!Segment(void);
 	};

@@ -67,13 +67,40 @@ array<Color>^ CTable::Segment::returnTable(void)
     return table;
 }
 
+void CTable::Segment::tableToPTable(void)
+{
+    p_table = gcnew array<Color>(length);
+    array<Byte>^ clr = gcnew array<Byte>(BYTES_PER_COLOR);
+
+    for (int i = 0; i < length; i++)
+    {
+        clr[RED] = table[i].R >> 1;
+        clr[GREEN] = table[i].G >> 1;
+        clr[BLUE] = table[i].B >> 1;
+
+        p_table[i] = Color::FromArgb(CC5TO8(clr[RED]), CC5TO8(clr[GREEN]), CC5TO8(clr[BLUE]));
+    }
+}
+
+array<Color>^ CTable::Segment::returnPTable(void)
+{
+    if (p_table)
+        return p_table;
+    else
+        throw gcnew System::Exception("Planet in-game palette is not declared!");
+}
+
 CTable::Segment::!Segment(void)
 {// finalizer
     length = 0;
     if (table)
         Array::Clear(table, 0, table->Length);
 
+    if (p_table)
+        Array::Clear(p_table, 0, p_table->Length);
+
     delete table;
+    delete p_table;
 }
 
 /* Color table */
