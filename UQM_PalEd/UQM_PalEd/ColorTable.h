@@ -3,14 +3,16 @@
 /*
  *	This program is created as a tool to view/modify/create
  *	Ur-Quan Masters .ct (color table) files. No source code from
- *	the original game was used. Program algorithms are based on dev doc
- *	file (see ..\doc\devel\strtab file in Ur-Quan Masters repository).
+ *	the original game was used besides a couple of macros to form in-game planet
+ *  colors. Program algorithms are based on dev doc	file
+ *  (see ..\doc\devel\strtab file in Ur-Quan Masters repository).
  *
  *	"Ur-Quan Masters" was originally created by Fred Ford and Paul Reiche III.
  *	Copyright Paul Reiche, Fred Ford. 1992-2002
  *	All trademarks belong to their respective owners.
  *
- *	This is a FREE software. DO NOT use it for financial profit.
+ *	This is a FREE software. You are free to edit and distribute it.
+ *  DO NOT use it for financial profit.
  *	Created by Kruzen. 2022
  */
 
@@ -59,7 +61,7 @@ namespace CTable
   * While most of the time table length is 770 bytes (2 bytes for indexes plus 3 bytes per color as RGB value)
   * technically it could be any length if it does not contradict described above rule
   * In that case table is split into several segments
-  * However most of default UQm tables contains 1 segment of 256 colors
+  * However most of default UQM tables contain 1 segment with 256 colors
   */
 	ref class ColorTable
 	{
