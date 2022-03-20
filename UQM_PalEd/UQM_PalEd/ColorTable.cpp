@@ -1,65 +1,144 @@
+// Ur-Quan Masters Palette Editor v0.0.5
+
+/*
+ *	This program is created as a tool to view/modify/create
+ *	Ur-Quan Masters .ct (color table) files. No source code from
+ *	the original game was used. Program algorithms are based on dev doc
+ *	file (see ..\doc\devel\strtab file in Ur-Quan Masters repository).
+ *
+ *	"Ur-Quan Masters" was originally created by Fred Ford and Paul Reiche III.
+ *	Copyright Paul Reiche, Fred Ford. 1992-2002
+ *	All trademarks belong to their respective owners.
+ *
+ *	This is a FREE software. DO NOT use it for financial profit.
+ *	Created by Kruzen. 2022
+ */
+
+
 #include "ColorTable.h"
 
 using namespace CTable;
-using namespace System::Windows::Forms;
 
-ColorTable::ColorTable(void)
-{
-    index = 0;
-    numCluts = 0;
-    table = gcnew array<Color>(MAX_CLUTS_PER_TABLE);
+/* Segment */
+CTable::Segment::Segment(void)
+{// constructor
+    length = 1;
 }
 
-ColorTable::ColorTable(int index)
-{
-    this->index = index;
-    numCluts = 0;
-    table = gcnew array<Color>(MAX_CLUTS_PER_TABLE);
+CTable::Segment::~Segment(void)
+{// destructor
+    this->!Segment();
 }
 
-void CTable::ColorTable::setNumCluts(int num)
+int CTable::Segment::getSegLength(void)
 {
-    numCluts = num;
+    return length;
 }
 
-void ColorTable::fillTable(BinaryReader^ br)
+void CTable::Segment::setSegLength(int l)
 {
-    int r, g, b = 0;
+    length = l;
+}
 
-    if (numCluts == 0 || numCluts % BYTES_PER_COLOR != 0)
-        return;
-    
-    br->BaseStream->Position += 2;// skip indexes of first and last clut
+void CTable::Segment::fillTable(array<Byte>^ b)
+{// build colors from byte array that has been read from file
+    if (length != (b->Length / 3))
+        throw gcnew System::Exception("Length of current segment is not matched to amount of presented bytes!");
 
-    for (int i = 0; br->BaseStream->Position < numCluts; i++)
+    array<Byte>^ clr = gcnew array<Byte>(BYTES_PER_COLOR);
+
+    table = gcnew array<Color>(length);
+
+    for (int i = 0; i < table->Length; i++)
     {
-        r = br->ReadByte();
-        g = br->ReadByte();
-        b = br->ReadByte();
-        /*MessageBox::Show("Color " + r, "Warning", MessageBoxButtons::OK, MessageBoxIcon::Warning);
-        MessageBox::Show("Color " + g, "Warning", MessageBoxButtons::OK, MessageBoxIcon::Warning);
-        MessageBox::Show("Color " + b, "Warning", MessageBoxButtons::OK, MessageBoxIcon::Warning);*/
-        table[i].FromArgb(0xFF, r, g, b);
+        for (int j = 0; j < BYTES_PER_COLOR; j++)
+        {
+            clr[j] = b[i * BYTES_PER_COLOR + j];
+        }
+
+        table[i] = Color::FromArgb(clr[RED], clr[GREEN], clr[BLUE]);
     }
 }
 
-array<Color>^ ColorTable::returnTable(void)
+array<Color>^ CTable::Segment::returnTable(void)
 {
     return table;
 }
 
-String^ ColorTable::debug(void)
+CTable::Segment::!Segment(void)
+{// finalizer
+    length = 0;
+    if (table)
+        Array::Clear(table, 0, table->Length);
+
+    delete table;
+}
+
+/* Color table */
+ColorTable::ColorTable(void)
+{// constructor
+    numSegs = 1;
+    numColors = MAX_COLORS_PER_TABLE;
+}
+
+CTable::ColorTable::~ColorTable(void)
+{// destructor
+    this->!ColorTable();
+}
+
+int CTable::ColorTable::getNumSegs(void)
 {
-    String^ s = "";
-    for (int i = 0; i < 256; i++)
-    {
-        s += table[i].R.ToString();
-        s += " ";
-        s += table[i].G.ToString();
-        s += " ";
-        s += table[i].B.ToString();
-        s += "\n";
-    }
-    MessageBox::Show("Color ", "Warning", MessageBoxButtons::OK, MessageBoxIcon::Warning);
-    return s;
+    return numSegs;
+}
+
+int CTable::ColorTable::getNumColors(void)
+{
+    return numColors;
+}
+
+int CTable::ColorTable::getSegLength(int index)
+{
+    return seg[index]->getSegLength();
+}
+
+void CTable::ColorTable::setNumSegs(int num)
+{// set number of segments and declare them
+    numSegs = num;
+    seg = gcnew array<Segment^>(numSegs);
+    for (int i = 0; i < numSegs; i++)
+        seg[i] = gcnew Segment();
+}
+
+void CTable::ColorTable::setNumColors(int num)
+{
+    numColors = num;
+}
+
+void CTable::ColorTable::setSegLength(int index, int l)
+{
+    seg[index]->setSegLength(l);
+}
+
+void CTable::ColorTable::setSeg(int index, array<Byte>^ b)
+{
+    seg[index]->fillTable(b);
+}
+
+array<Color>^ CTable::ColorTable::returnSeg(int index)
+{
+    if (index < numSegs)
+        return seg[index]->returnTable();
+    else
+        throw gcnew System::Exception("Incorrect seg index!");
+}
+
+CTable::ColorTable::!ColorTable(void)
+{// finalizer
+    numSegs = 0;
+    numColors = 0;
+
+    if (seg)
+        Array::Clear(seg, 0, seg->Length);
+
+    delete seg;
 }

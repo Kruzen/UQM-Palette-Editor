@@ -1,138 +1,217 @@
-// DLL for .ct handling
+// Ur-Quan Masters Palette Editor v0.0.5
 
+/*
+ *	This program is created as a tool to view/modify/create
+ *	Ur-Quan Masters .ct (color table) files. No source code from
+ *	the original game was used. Program algorithms are based on dev doc
+ *	file (see ..\doc\devel\strtab file in Ur-Quan Masters repository).
+ *
+ *	"Ur-Quan Masters" was originally created by Fred Ford and Paul Reiche III.
+ *	Copyright Paul Reiche, Fred Ford. 1992-2002
+ *	All trademarks belong to their respective owners.
+ *
+ *	This is a FREE software. DO NOT use it for financial profit.
+ *	Created by Kruzen. 2022
+ */
+
+
+//.ct handling
 
 #include "File_Handler.h"
 
 using namespace Handler;
-using namespace System::Windows::Forms;
 
-void File_Handler::provokeMessageBox(String^ s, bool err)
-{
-    MessageBox::Show(s, err ? "Error" : "Warning", MessageBoxButtons::OK, err ? MessageBoxIcon::Error : MessageBoxIcon::Warning);
+void File_Handler::reInitValues(String^ fileName, int tableCount, array<int>^ tableLength)
+{// "constructor"
+    this->fileName = fileName;
+    this->tableCount = tableCount;
+    this->tableLength = tableLength;
+    table = gcnew array<ColorTable^>(this->tableCount);
+    for (int i = 0; i < this->tableCount; i++)
+        table[i] = gcnew ColorTable();
 }
 
-bool File_Handler::checkFileFormat(BinaryReader^ br)
-{
-    // Check compression
+File_Handler::File_Handler(void)
+{// default constructor
+    fileName = "Unidentified";
+    tableLength = gcnew array<int>(1);
+    table = gcnew array<ColorTable^>(1);
+    content = "No Data\n";
+    tableCount = 0;
+}
+
+File_Handler::~File_Handler()
+{// destructor
+    this->!File_Handler();
+}
+
+void File_Handler::checkFileFormat(String^ fname)
+{// check if selected file is in correct format and can be read by UQM code
+    FileStream^ fs = gcnew FileStream(fname, FileMode::Open);
+    BinaryReader^ br = gcnew BinaryReader(fs);
+
+    int pos;
+    int t_count;
+    array<int>^ t_length;
+
+    // Check compression {0xFFFFFFFF}
     {
         while (br->BaseStream->Position < ENCRYPTION_LENGTH)
         {
             if (br->ReadByte() != 0xFF)
             {
-                provokeMessageBox("File is not correctly compressed or damaged!", true);
-                return false;
+                pos = br->BaseStream->Position;
+                fs->Close();
+                throw gcnew CTException("File is not correctly compressed or damaged! Byte: " + pos, true);
+                return;
             }
         }
     }
 
-    // Check White spot
+    // Check White spot {0x0000}
     {
         while (br->BaseStream->Position < WHITE_SPOT_LENGTH)
         {
             if (br->ReadByte() != 0x00)
             {
-                provokeMessageBox("File is damaged at pos " + br->BaseStream->Position, false);
+                pos = br->BaseStream->Position;
+                fs->Close();
+                throw gcnew CTException("File is damaged! Byte: " + pos, false);
+                return;
             }
         }
     }
 
-    // Get Num of color tables
+    // Get Num of color tables {0x0001}
     {
         array<Byte>^ bytes = gcnew array<Byte>(2);
         for (int i = 1; br->BaseStream->Position < NUM_OF_TABLES; i--)
         {
             bytes[i] = br->ReadByte();
         }
-        tableCount = BitConverter::ToInt16(bytes, 0);
+        t_count = BitConverter::ToInt16(bytes, 0);// converts in reverse
 
-        if (tableCount < 1)
+        if (t_count < 1)
         {
-            provokeMessageBox("Wrong number of tables!", true);
-            return false;
+            pos = br->BaseStream->Position;
+            fs->Close();
+            throw gcnew CTException("Wrong number of tables! Byte: " + pos, true);
+            return;
         }
     }
 
-    // Check unused space of 4 bytes
+    // Check unused space of 4 bytes {0x00000000}
     {
         while (br->BaseStream->Position < UNUSED)
         {
             if (br->ReadByte() != 0x00)
             {
-                provokeMessageBox("File is not correct in unused space! Please check at pos " + br->BaseStream->Position, false);
+                pos = br->BaseStream->Position;
+                fs->Close();
+                throw gcnew CTException("File is not correct in unused space! Byte: " + pos, false);
+                return;
             }
         }
     }
 
-    // Get length of tables
+    // Get length of tables {0x00000302}
     {
         array<Byte>^ bytes = gcnew array<Byte>(NUM_BYTES_PER_TABLE_LENGTH);
-        
-        for (int i = 0; i < tableCount; i++)
+        t_length = gcnew array<int>(t_count);
+
+        for (int i = 0; i < t_count; i++)
         {
             for (int j = 3; br->BaseStream->Position < UNUSED + NUM_BYTES_PER_TABLE_LENGTH * (i + 1); j--)
             {
                 bytes[j] = br->ReadByte();
             }
-            tableLength[i] = BitConverter::ToInt32(bytes, 0);
+            t_length[i] = BitConverter::ToInt32(bytes, 0);// converts in reverse
 
-            if (tableLength[i] < 1)
+            if (t_length[i] < 1 || (t_length[i] - 2) % 3 != 0)// not 3 bytes per color
             {
-                provokeMessageBox("Incorrect length of table " + (i + 1), true);
-                return false;
-            }
-            if (tableLength[i] > (256 * 3 + 2))
-            {
-                if (tableCount != 1 || (tableLength[i] - 2) % 256 != 0)
-                {
-                    provokeMessageBox("Table length is too large and do not reflect uqm.ct format!", true);
-                    return false;
-                }
-
-                segMode = true;
-                segCount = (tableLength[i] - 2) / (256 * BYTES_PER_COLOR);
-            }
-            else
-            {
-                segMode = false;
-                segCount = 0;
+                pos = br->BaseStream->Position;
+                fs->Close();
+                throw gcnew CTException("Incorrect length of table " + (i + 1) + "! Byte: " + pos, true);
+                return;
             }
         }
     }
     // Check remaining length
     {
-        int controlSum = LENGTH_OF_TECH_BYTES + (NUM_BYTES_PER_TABLE_LENGTH * tableCount);
+        int controlSum = LENGTH_OF_TECH_BYTES + (NUM_BYTES_PER_TABLE_LENGTH * t_count);
 
-        for (int i = 0; i < tableCount; i++)
+        for (int i = 0; i < t_count; i++)
         {
-            controlSum += tableLength[i];
+            controlSum += t_length[i];
         }
-
-        //provokeMessageBox("Length is " + tableLength[0], false);
 
         if (br->BaseStream->Length != controlSum)
         {
-            provokeMessageBox("File length is incorrect!", true);
-            return false;
+            pos = br->BaseStream->Length;
+            fs->Close();
+            throw gcnew CTException("File length is incorrect! Control sum: " + controlSum + ". Stream length: " + pos, true);
+            return;
         }
     }
-    return true;
+
+    fs->Close();
+
+    this->reInitValues(fname, t_count, t_length);// values verified - accept them
 }
 
-File_Handler::File_Handler(void)
-{
-    fileName = "Unidentified";
-    tableLength = gcnew array<int>(MAX_TABLES);
-    content = "No Data\n";
-    tableCount = 0;
-    currTable = gcnew array<Color>(MAX_COLORS_PER_TABLE);
-    currIndex = 0;
-    segMode = false;
-    segCount = 0;
+void Handler::File_Handler::extractContent(void)
+{// fill all segments of all tables
+    FileStream^ fs = gcnew FileStream(fileName, FileMode::Open);
+    BinaryReader^ br = gcnew BinaryReader(fs);
+    int endByte_index;
+    int numBytes;
+
+    br->BaseStream->Position = LENGTH_OF_TECH_BYTES + (NUM_BYTES_PER_TABLE_LENGTH * tableCount);
+
+    for (int i = 0; i < tableCount; i++)// for every table determine the amount of segments and then fill them
+    {// fill structures from selected file.ct
+        int segs = (tableLength[i] - 2) / (MAX_BYTES_PER_SEGMENT);
+
+        if (segs < 1)
+            segs = 1;// one segment of less than 256 colors (i.e. planet table)
+        else
+            segs += (((tableLength[i] - 2) % (MAX_BYTES_PER_SEGMENT)) != 0);// +1 segment if it's <256 colors in length 
+
+        table[i]->setNumSegs(segs);
+        table[i]->setNumColors((tableLength[i] - 2) / 3);
+
+        endByte_index = br->BaseStream->Position + tableLength[i];
+        br->BaseStream->Position += 2; // skip indexes and go straight to colors
+
+        for (int j = 0; j < segs; j++)
+        {// Fill segments
+            numBytes = MIN(MAX_BYTES_PER_SEGMENT, endByte_index - br->BaseStream->Position);
+            table[i]->setSegLength(j, numBytes / 3);
+            table[i]->setSeg(j, br->ReadBytes(numBytes));
+        }
+    }
+
+    fs->Close();
 }
 
-File_Handler::~File_Handler()
+array<Color>^ File_Handler::getTable(int t_index, int s_index)
 {
-    this->!File_Handler();
+    return table[t_index]->returnSeg(s_index);
+}
+
+array<Color>^ Handler::File_Handler::getTable(void)
+{
+    return table[0]->returnSeg(0);
+}
+
+int Handler::File_Handler::getNumSegs(int t_index)
+{
+    return table[t_index]->getNumSegs();
+}
+
+int Handler::File_Handler::getNumColors(int t_index)
+{
+    return table[t_index]->getNumColors();
 }
 
 void File_Handler::setFileName(String^ name)
@@ -143,125 +222,48 @@ void File_Handler::setFileName(String^ name)
 		fileName = "Unidentified";
 }
 
-void File_Handler::extractContent(void)
-{
-    try
-    {
-        FileStream^ fs = gcnew FileStream(fileName, FileMode::Open);
-        BinaryReader^ br = gcnew BinaryReader(fs);
-        
-        if (checkFileFormat(br))
-        {
-            fs->Close();
-            setCurrentTable(0);
-        }
-        else
-            fs->Close();
-    }
-    catch (Exception^ e)
-    {
-        if (dynamic_cast<FileNotFoundException^>(e))
-            provokeMessageBox("Cannot find file with that name!", true);
-        else
-            provokeMessageBox(e->ToString(), true);
-    }
-}
-
-array<Color>^ File_Handler::getCurrentTable()
-{
-    return currTable;
-}
-
-void File_Handler::setCurrentTable(int index)
-{
-    int start = LENGTH_OF_TECH_BYTES + (NUM_BYTES_PER_TABLE_LENGTH * tableCount);
-    int end = start;
-    int i = 0;
-    int plMultiplyer = 1;// for planet in-game view TODO: implement later
-
-    if (!segMode)
-    {
-        if (index > tableCount)
-        {
-            provokeMessageBox("Incorrect index!", true);
-            return;
-        }
-
-        end += tableLength[0];
-
-        while (i < index)
-        {
-            start = end;
-            end += tableLength[i];
-            i++;
-        }
-
-        if ((end - start) == 0 || (end - start - 2) % BYTES_PER_COLOR != 0)
-        {
-            provokeMessageBox("Incorrect number of cluts!", true);
-            return;
-        }
-        start += 2;// skip indexes of first and last clut
-    }
-    else
-    {
-        start = end + 2 + (index * (MAX_COLORS_PER_TABLE * BYTES_PER_COLOR));
-        end = start + (MAX_COLORS_PER_TABLE * BYTES_PER_COLOR);
-    }
-
-    try
-    {
-        FileStream^ fs = gcnew FileStream(fileName, FileMode::Open);
-        BinaryReader^ br = gcnew BinaryReader(fs);
-        int r, g, b = 0;
-
-        br->BaseStream->Position = start;
-
-        for (int j = 0; br->BaseStream->Position < end; j++)
-        {
-            r = br->ReadByte();
-            g = br->ReadByte();
-            b = br->ReadByte();
-            
-            currTable[j] = Color::FromArgb(r, g, b);
-        }
-        fs->Close();
-        currIndex = index;
-    }
-    catch (Exception^ e)
-    {
-        if (dynamic_cast<FileNotFoundException^>(e))
-            provokeMessageBox("Cannot read colors!", true);
-        else
-            provokeMessageBox(e->ToString(), true);
-    }
-}
-
 String^ File_Handler::getFileName(void)
-{
+{// get filename from full path
     String^ fname = Path::GetFileName(fileName);
     return fname;
 }
 
-int Handler::File_Handler::getNumTables(void)
+int File_Handler::getNumTables(void)
 {
-    if (!segMode)
-        return tableCount;
-    else
-        return segCount;
+    return tableCount;
 }
 
-int Handler::File_Handler::getCurrIndex(void)
+int Handler::File_Handler::getNumSegColors(int t_index, int s_index)
 {
-    return currIndex;
+    return table[t_index]->getSegLength(s_index);
 }
 
 File_Handler::!File_Handler()
-{
+{// finalizer
     delete fileName;
-    delete currTable;
     delete tableLength;
     delete content;
-    currIndex = 0;
     tableCount = 0;
+}
+/* Custom exception - contains a boolean to determine: is it a warning or an error? */
+Handler::CTException::CTException(void)
+{
+    message = "Unknown error";
+    warning = false;
+}
+
+Handler::CTException::CTException(String^ message, bool warning)
+{
+    this->message = message;
+    this->warning = warning;
+}
+
+bool Handler::CTException::IsWarning(void)
+{
+    return warning;
+}
+
+String^ Handler::CTException::ToString(void)
+{
+    return message;
 }

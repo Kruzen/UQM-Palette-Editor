@@ -1,8 +1,26 @@
+// Ur-Quan Masters Palette Editor v0.0.5
+
+/*
+ *	This program is created as a tool to view/modify/create
+ *	Ur-Quan Masters .ct (color table) files. No source code from
+ *	the original game was used. Program algorithms are based on dev doc
+ *	file (see ..\doc\devel\strtab file in Ur-Quan Masters repository).
+ *
+ *	"Ur-Quan Masters" was originally created by Fred Ford and Paul Reiche III.
+ *	Copyright Paul Reiche, Fred Ford. 1992-2002
+ *	All trademarks belong to their respective owners.
+ *
+ *	This is a FREE software. DO NOT use it for financial profit.
+ *	Created by Kruzen. 2022
+ */
+
+
 #include "File_Handler.h"
+#include "resource.h"
 
 #pragma once
 
-#define TITLE "Ur-Quan Masters Palette Editor v0.0.3"
+#define TITLE "Ur-Quan Masters Palette Editor v0.0.5"
 
 using namespace Handler;
 
@@ -21,26 +39,51 @@ namespace UQMPalEd {
 	public ref class MainForm : public System::Windows::Forms::Form
 	{
 	public:
-		MainForm(void)
-		{
-			InitializeComponent();
-			
-			openFileDialog1->Filter = "UQM color table (*.ct)|*.ct";
-		}
-	private: System::Windows::Forms::PictureBox^ pictureBox1;
-	private: System::Windows::Forms::RichTextBox^ richTextBox1;
-	private: System::Windows::Forms::Label^ label1;
-	private: System::Windows::Forms::ComboBox^ comboBox1;
-	private: System::Windows::Forms::Label^ label2;
-	private: System::Windows::Forms::ToolStripMenuItem^ exitToolStripMenuItem2;
+		MainForm(void);
+		File_Handler^ h;
+		int displayed;
+	private: System::Windows::Forms::Label^ S_Title;
+	private: System::Windows::Forms::ComboBox^ segmentChooser;
+	private: System::Windows::Forms::GroupBox^ controlPanel;
+	public:
 
 	public:
-		File_Handler^ h;
-		array<Color>^ table;
+
+
+	private: System::Windows::Forms::Label^ tableSuffix;
+	private: System::Windows::Forms::Label^ segmentSuffix;
+	private: System::Windows::Forms::Label^ CiT_value;
+
+
+
+	private: System::Windows::Forms::Label^ CiT_title;
+	private: System::Windows::Forms::Label^ CiS_value;
+
+
+	private: System::Windows::Forms::Label^ CiS_title;
+
+		   Bitmap^ background;
+		void invokeMessageBox(String^ s, bool err);
 		void fillTableView(array<Color>^ table);
-		void fillDropDownSegs(int numTables);
-		void clearApp(void);
+		void fillDropDownSegs(int numSegs);
+		void fillDropDownTables(int numTables);
+		void clearTableView(void);
 		void closeCurrent(void);
+		Image^ getImageFromRes(long resource_ID);
+	private: System::Windows::Forms::RichTextBox^ debug;
+	private: System::Windows::Forms::Label^ debug_title;
+
+
+
+	private: System::Windows::Forms::ComboBox^ tableChooser;
+
+	private: System::Windows::Forms::Label^ T_Title;
+	private: System::Windows::Forms::ToolStripMenuItem^ exit_Button;
+
+
+	private: System::Windows::Forms::PictureBox^ tableViewer;
+
+		
 	protected:
 		/// <summary>
 		/// Освободить все используемые ресурсы.
@@ -52,17 +95,22 @@ namespace UQMPalEd {
 				delete components;
 			}
 		}
-	private: System::Windows::Forms::OpenFileDialog^ openFileDialog1;
-	private: System::Windows::Forms::MenuStrip^ menuStrip1;
+	private: System::Windows::Forms::OpenFileDialog^ openFileDialog;
+	private: System::Windows::Forms::MenuStrip^ menuStrip;
+	protected:
+
+
 	private: System::Windows::Forms::ToolStripMenuItem^ fileToolStripMenuItem;
 	private: System::Windows::Forms::ToolStripMenuItem^ newToolStripMenuItem;
-	private: System::Windows::Forms::ToolStripMenuItem^ openToolStripMenuItem;
+	private: System::Windows::Forms::ToolStripMenuItem^ openFile_Button;
+
 	private: System::Windows::Forms::ToolStripMenuItem^ saveAsToolStripMenuItem;
 	private: System::Windows::Forms::ToolStripMenuItem^ saveToolStripMenuItem;
 	private: System::Windows::Forms::ToolStripMenuItem^ exitToolStripMenuItem;
 	private: System::Windows::Forms::ToolStripMenuItem^ abourToolStripMenuItem;
 	private: System::Windows::Forms::ToolStripMenuItem^ pSToolStripMenuItem;
-	private: System::Windows::Forms::ToolStripMenuItem^ exitToolStripMenuItem1;
+	private: System::Windows::Forms::ToolStripMenuItem^ closeCurrent_Button;
+
 
 	protected:
 
@@ -80,49 +128,59 @@ namespace UQMPalEd {
 		void InitializeComponent(void)
 		{
 			System::ComponentModel::ComponentResourceManager^ resources = (gcnew System::ComponentModel::ComponentResourceManager(MainForm::typeid));
-			this->openFileDialog1 = (gcnew System::Windows::Forms::OpenFileDialog());
-			this->menuStrip1 = (gcnew System::Windows::Forms::MenuStrip());
+			this->openFileDialog = (gcnew System::Windows::Forms::OpenFileDialog());
+			this->menuStrip = (gcnew System::Windows::Forms::MenuStrip());
 			this->fileToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
 			this->newToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
-			this->openToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
+			this->openFile_Button = (gcnew System::Windows::Forms::ToolStripMenuItem());
 			this->saveAsToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
 			this->saveToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
 			this->exitToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
 			this->pSToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
-			this->exitToolStripMenuItem1 = (gcnew System::Windows::Forms::ToolStripMenuItem());
-			this->exitToolStripMenuItem2 = (gcnew System::Windows::Forms::ToolStripMenuItem());
+			this->closeCurrent_Button = (gcnew System::Windows::Forms::ToolStripMenuItem());
+			this->exit_Button = (gcnew System::Windows::Forms::ToolStripMenuItem());
 			this->abourToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
-			this->pictureBox1 = (gcnew System::Windows::Forms::PictureBox());
-			this->richTextBox1 = (gcnew System::Windows::Forms::RichTextBox());
-			this->label1 = (gcnew System::Windows::Forms::Label());
-			this->comboBox1 = (gcnew System::Windows::Forms::ComboBox());
-			this->label2 = (gcnew System::Windows::Forms::Label());
-			this->menuStrip1->SuspendLayout();
-			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictureBox1))->BeginInit();
+			this->debug = (gcnew System::Windows::Forms::RichTextBox());
+			this->debug_title = (gcnew System::Windows::Forms::Label());
+			this->tableChooser = (gcnew System::Windows::Forms::ComboBox());
+			this->T_Title = (gcnew System::Windows::Forms::Label());
+			this->tableViewer = (gcnew System::Windows::Forms::PictureBox());
+			this->S_Title = (gcnew System::Windows::Forms::Label());
+			this->segmentChooser = (gcnew System::Windows::Forms::ComboBox());
+			this->controlPanel = (gcnew System::Windows::Forms::GroupBox());
+			this->CiS_value = (gcnew System::Windows::Forms::Label());
+			this->CiS_title = (gcnew System::Windows::Forms::Label());
+			this->CiT_value = (gcnew System::Windows::Forms::Label());
+			this->CiT_title = (gcnew System::Windows::Forms::Label());
+			this->segmentSuffix = (gcnew System::Windows::Forms::Label());
+			this->tableSuffix = (gcnew System::Windows::Forms::Label());
+			this->menuStrip->SuspendLayout();
+			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->tableViewer))->BeginInit();
+			this->controlPanel->SuspendLayout();
 			this->SuspendLayout();
 			// 
-			// openFileDialog1
+			// openFileDialog
 			// 
-			this->openFileDialog1->FileName = L"openFileDialog1";
+			this->openFileDialog->FileName = L"openFileDialog1";
 			// 
-			// menuStrip1
+			// menuStrip
 			// 
-			this->menuStrip1->Items->AddRange(gcnew cli::array< System::Windows::Forms::ToolStripItem^  >(2) {
+			this->menuStrip->Items->AddRange(gcnew cli::array< System::Windows::Forms::ToolStripItem^  >(2) {
 				this->fileToolStripMenuItem,
 					this->abourToolStripMenuItem
 			});
-			this->menuStrip1->Location = System::Drawing::Point(0, 0);
-			this->menuStrip1->Name = L"menuStrip1";
-			this->menuStrip1->Size = System::Drawing::Size(624, 24);
-			this->menuStrip1->TabIndex = 0;
-			this->menuStrip1->Text = L"menuStrip1";
+			this->menuStrip->Location = System::Drawing::Point(0, 0);
+			this->menuStrip->Name = L"menuStrip";
+			this->menuStrip->Size = System::Drawing::Size(624, 24);
+			this->menuStrip->TabIndex = 0;
+			this->menuStrip->Text = L"menuStrip1";
 			// 
 			// fileToolStripMenuItem
 			// 
 			this->fileToolStripMenuItem->DropDownItems->AddRange(gcnew cli::array< System::Windows::Forms::ToolStripItem^  >(7) {
 				this->newToolStripMenuItem,
-					this->openToolStripMenuItem, this->saveAsToolStripMenuItem, this->saveToolStripMenuItem, this->exitToolStripMenuItem, this->exitToolStripMenuItem1,
-					this->exitToolStripMenuItem2
+					this->openFile_Button, this->saveAsToolStripMenuItem, this->saveToolStripMenuItem, this->exitToolStripMenuItem, this->closeCurrent_Button,
+					this->exit_Button
 			});
 			this->fileToolStripMenuItem->Name = L"fileToolStripMenuItem";
 			this->fileToolStripMenuItem->Size = System::Drawing::Size(37, 20);
@@ -132,35 +190,35 @@ namespace UQMPalEd {
 			// 
 			this->newToolStripMenuItem->Enabled = false;
 			this->newToolStripMenuItem->Name = L"newToolStripMenuItem";
-			this->newToolStripMenuItem->Size = System::Drawing::Size(180, 22);
+			this->newToolStripMenuItem->Size = System::Drawing::Size(139, 22);
 			this->newToolStripMenuItem->Text = L"New";
 			// 
-			// openToolStripMenuItem
+			// openFile_Button
 			// 
-			this->openToolStripMenuItem->Name = L"openToolStripMenuItem";
-			this->openToolStripMenuItem->Size = System::Drawing::Size(180, 22);
-			this->openToolStripMenuItem->Text = L"Open";
-			this->openToolStripMenuItem->Click += gcnew System::EventHandler(this, &MainForm::openToolStripMenuItem_Click);
+			this->openFile_Button->Name = L"openFile_Button";
+			this->openFile_Button->Size = System::Drawing::Size(139, 22);
+			this->openFile_Button->Text = L"Open";
+			this->openFile_Button->Click += gcnew System::EventHandler(this, &MainForm::openFile_Button_Click);
 			// 
 			// saveAsToolStripMenuItem
 			// 
 			this->saveAsToolStripMenuItem->Enabled = false;
 			this->saveAsToolStripMenuItem->Name = L"saveAsToolStripMenuItem";
-			this->saveAsToolStripMenuItem->Size = System::Drawing::Size(180, 22);
+			this->saveAsToolStripMenuItem->Size = System::Drawing::Size(139, 22);
 			this->saveAsToolStripMenuItem->Text = L"Save As";
 			// 
 			// saveToolStripMenuItem
 			// 
 			this->saveToolStripMenuItem->Enabled = false;
 			this->saveToolStripMenuItem->Name = L"saveToolStripMenuItem";
-			this->saveToolStripMenuItem->Size = System::Drawing::Size(180, 22);
+			this->saveToolStripMenuItem->Size = System::Drawing::Size(139, 22);
 			this->saveToolStripMenuItem->Text = L"Save";
 			// 
 			// exitToolStripMenuItem
 			// 
 			this->exitToolStripMenuItem->DropDownItems->AddRange(gcnew cli::array< System::Windows::Forms::ToolStripItem^  >(1) { this->pSToolStripMenuItem });
 			this->exitToolStripMenuItem->Name = L"exitToolStripMenuItem";
-			this->exitToolStripMenuItem->Size = System::Drawing::Size(180, 22);
+			this->exitToolStripMenuItem->Size = System::Drawing::Size(139, 22);
 			this->exitToolStripMenuItem->Text = L"Import from";
 			// 
 			// pSToolStripMenuItem
@@ -170,20 +228,20 @@ namespace UQMPalEd {
 			this->pSToolStripMenuItem->Size = System::Drawing::Size(87, 22);
 			this->pSToolStripMenuItem->Text = L"PS";
 			// 
-			// exitToolStripMenuItem1
+			// closeCurrent_Button
 			// 
-			this->exitToolStripMenuItem1->Enabled = false;
-			this->exitToolStripMenuItem1->Name = L"exitToolStripMenuItem1";
-			this->exitToolStripMenuItem1->Size = System::Drawing::Size(180, 22);
-			this->exitToolStripMenuItem1->Text = L"Close";
-			this->exitToolStripMenuItem1->Click += gcnew System::EventHandler(this, &MainForm::exitToolStripMenuItem1_Click);
+			this->closeCurrent_Button->Enabled = false;
+			this->closeCurrent_Button->Name = L"closeCurrent_Button";
+			this->closeCurrent_Button->Size = System::Drawing::Size(139, 22);
+			this->closeCurrent_Button->Text = L"Close";
+			this->closeCurrent_Button->Click += gcnew System::EventHandler(this, &MainForm::closeCurrent_Button_Click);
 			// 
-			// exitToolStripMenuItem2
+			// exit_Button
 			// 
-			this->exitToolStripMenuItem2->Name = L"exitToolStripMenuItem2";
-			this->exitToolStripMenuItem2->Size = System::Drawing::Size(180, 22);
-			this->exitToolStripMenuItem2->Text = L"Exit";
-			this->exitToolStripMenuItem2->Click += gcnew System::EventHandler(this, &MainForm::exitToolStripMenuItem2_Click);
+			this->exit_Button->Name = L"exit_Button";
+			this->exit_Button->Size = System::Drawing::Size(139, 22);
+			this->exit_Button->Text = L"Exit";
+			this->exit_Button->Click += gcnew System::EventHandler(this, &MainForm::exit_Button_Click);
 			// 
 			// abourToolStripMenuItem
 			// 
@@ -192,52 +250,151 @@ namespace UQMPalEd {
 			this->abourToolStripMenuItem->Size = System::Drawing::Size(52, 20);
 			this->abourToolStripMenuItem->Text = L"About";
 			// 
-			// pictureBox1
+			// debug
 			// 
-			this->pictureBox1->BackColor = System::Drawing::SystemColors::ButtonHighlight;
-			this->pictureBox1->BorderStyle = System::Windows::Forms::BorderStyle::Fixed3D;
-			this->pictureBox1->Location = System::Drawing::Point(12, 109);
-			this->pictureBox1->Name = L"pictureBox1";
-			this->pictureBox1->Size = System::Drawing::Size(320, 320);
-			this->pictureBox1->TabIndex = 1;
-			this->pictureBox1->TabStop = false;
+			this->debug->Enabled = false;
+			this->debug->Location = System::Drawing::Point(559, 234);
+			this->debug->Name = L"debug";
+			this->debug->Size = System::Drawing::Size(53, 88);
+			this->debug->TabIndex = 2;
+			this->debug->Text = L"";
+			this->debug->Visible = false;
 			// 
-			// richTextBox1
+			// debug_title
 			// 
-			this->richTextBox1->Enabled = false;
-			this->richTextBox1->Location = System::Drawing::Point(572, 234);
-			this->richTextBox1->Name = L"richTextBox1";
-			this->richTextBox1->Size = System::Drawing::Size(40, 88);
-			this->richTextBox1->TabIndex = 2;
-			this->richTextBox1->Text = L"";
+			this->debug_title->AutoSize = true;
+			this->debug_title->Location = System::Drawing::Point(556, 218);
+			this->debug_title->Name = L"debug_title";
+			this->debug_title->Size = System::Drawing::Size(39, 13);
+			this->debug_title->TabIndex = 3;
+			this->debug_title->Text = L"Debug";
+			this->debug_title->Visible = false;
 			// 
-			// label1
+			// tableChooser
 			// 
-			this->label1->AutoSize = true;
-			this->label1->Location = System::Drawing::Point(572, 215);
-			this->label1->Name = L"label1";
-			this->label1->Size = System::Drawing::Size(39, 13);
-			this->label1->TabIndex = 3;
-			this->label1->Text = L"Debug";
+			this->tableChooser->DropDownStyle = System::Windows::Forms::ComboBoxStyle::DropDownList;
+			this->tableChooser->Enabled = false;
+			this->tableChooser->Location = System::Drawing::Point(49, 22);
+			this->tableChooser->Name = L"tableChooser";
+			this->tableChooser->Size = System::Drawing::Size(50, 21);
+			this->tableChooser->TabIndex = 4;
+			this->tableChooser->SelectedIndexChanged += gcnew System::EventHandler(this, &MainForm::tableChooser_SelectedIndexChanged);
 			// 
-			// comboBox1
+			// T_Title
 			// 
-			this->comboBox1->DropDownStyle = System::Windows::Forms::ComboBoxStyle::DropDownList;
-			this->comboBox1->Enabled = false;
-			this->comboBox1->Location = System::Drawing::Point(70, 61);
-			this->comboBox1->Name = L"comboBox1";
-			this->comboBox1->Size = System::Drawing::Size(50, 21);
-			this->comboBox1->TabIndex = 4;
-			this->comboBox1->SelectedIndexChanged += gcnew System::EventHandler(this, &MainForm::comboBox1_SelectedIndexChanged);
+			this->T_Title->AutoSize = true;
+			this->T_Title->Location = System::Drawing::Point(6, 25);
+			this->T_Title->Name = L"T_Title";
+			this->T_Title->Size = System::Drawing::Size(37, 13);
+			this->T_Title->TabIndex = 5;
+			this->T_Title->Text = L"Table:";
 			// 
-			// label2
+			// tableViewer
 			// 
-			this->label2->AutoSize = true;
-			this->label2->Location = System::Drawing::Point(12, 64);
-			this->label2->Name = L"label2";
-			this->label2->Size = System::Drawing::Size(52, 13);
-			this->label2->TabIndex = 5;
-			this->label2->Text = L"Segment:";
+			this->tableViewer->BackColor = System::Drawing::SystemColors::ButtonHighlight;
+			this->tableViewer->Location = System::Drawing::Point(12, 109);
+			this->tableViewer->Name = L"tableViewer";
+			this->tableViewer->Size = System::Drawing::Size(320, 320);
+			this->tableViewer->TabIndex = 6;
+			this->tableViewer->TabStop = false;
+			// 
+			// S_Title
+			// 
+			this->S_Title->AutoSize = true;
+			this->S_Title->Location = System::Drawing::Point(171, 25);
+			this->S_Title->Name = L"S_Title";
+			this->S_Title->Size = System::Drawing::Size(52, 13);
+			this->S_Title->TabIndex = 7;
+			this->S_Title->Text = L"Segment:";
+			// 
+			// segmentChooser
+			// 
+			this->segmentChooser->DropDownStyle = System::Windows::Forms::ComboBoxStyle::DropDownList;
+			this->segmentChooser->Enabled = false;
+			this->segmentChooser->FormattingEnabled = true;
+			this->segmentChooser->Location = System::Drawing::Point(229, 22);
+			this->segmentChooser->Name = L"segmentChooser";
+			this->segmentChooser->Size = System::Drawing::Size(50, 21);
+			this->segmentChooser->TabIndex = 8;
+			this->segmentChooser->SelectedIndexChanged += gcnew System::EventHandler(this, &MainForm::segmentChooser_SelectedIndexChanged);
+			// 
+			// controlPanel
+			// 
+			this->controlPanel->BackColor = System::Drawing::SystemColors::InactiveCaption;
+			this->controlPanel->Controls->Add(this->CiS_value);
+			this->controlPanel->Controls->Add(this->CiS_title);
+			this->controlPanel->Controls->Add(this->CiT_value);
+			this->controlPanel->Controls->Add(this->CiT_title);
+			this->controlPanel->Controls->Add(this->segmentSuffix);
+			this->controlPanel->Controls->Add(this->tableSuffix);
+			this->controlPanel->Controls->Add(this->T_Title);
+			this->controlPanel->Controls->Add(this->segmentChooser);
+			this->controlPanel->Controls->Add(this->tableChooser);
+			this->controlPanel->Controls->Add(this->S_Title);
+			this->controlPanel->Location = System::Drawing::Point(12, 27);
+			this->controlPanel->Name = L"controlPanel";
+			this->controlPanel->Size = System::Drawing::Size(340, 75);
+			this->controlPanel->TabIndex = 9;
+			this->controlPanel->TabStop = false;
+			this->controlPanel->Text = L"Control Panel";
+			// 
+			// CiS_value
+			// 
+			this->CiS_value->AutoSize = true;
+			this->CiS_value->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 8.25F, System::Drawing::FontStyle::Bold, System::Drawing::GraphicsUnit::Point,
+				static_cast<System::Byte>(204)));
+			this->CiS_value->Location = System::Drawing::Point(295, 56);
+			this->CiS_value->Name = L"CiS_value";
+			this->CiS_value->Size = System::Drawing::Size(14, 13);
+			this->CiS_value->TabIndex = 14;
+			this->CiS_value->Text = L"0";
+			// 
+			// CiS_title
+			// 
+			this->CiS_title->AutoSize = true;
+			this->CiS_title->Location = System::Drawing::Point(171, 56);
+			this->CiS_title->Name = L"CiS_title";
+			this->CiS_title->Size = System::Drawing::Size(129, 13);
+			this->CiS_title->TabIndex = 13;
+			this->CiS_title->Text = L"Colors in current segment:";
+			// 
+			// CiT_value
+			// 
+			this->CiT_value->AutoSize = true;
+			this->CiT_value->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 8.25F, System::Drawing::FontStyle::Bold, System::Drawing::GraphicsUnit::Point,
+				static_cast<System::Byte>(204)));
+			this->CiT_value->Location = System::Drawing::Point(116, 56);
+			this->CiT_value->Name = L"CiT_value";
+			this->CiT_value->Size = System::Drawing::Size(14, 13);
+			this->CiT_value->TabIndex = 12;
+			this->CiT_value->Text = L"0";
+			// 
+			// CiT_title
+			// 
+			this->CiT_title->AutoSize = true;
+			this->CiT_title->Location = System::Drawing::Point(9, 56);
+			this->CiT_title->Name = L"CiT_title";
+			this->CiT_title->Size = System::Drawing::Size(112, 13);
+			this->CiT_title->TabIndex = 11;
+			this->CiT_title->Text = L"Colors in current table:";
+			// 
+			// segmentSuffix
+			// 
+			this->segmentSuffix->AutoSize = true;
+			this->segmentSuffix->Location = System::Drawing::Point(285, 25);
+			this->segmentSuffix->Name = L"segmentSuffix";
+			this->segmentSuffix->Size = System::Drawing::Size(25, 13);
+			this->segmentSuffix->TabIndex = 10;
+			this->segmentSuffix->Text = L"of 0";
+			// 
+			// tableSuffix
+			// 
+			this->tableSuffix->AutoSize = true;
+			this->tableSuffix->Location = System::Drawing::Point(105, 25);
+			this->tableSuffix->Name = L"tableSuffix";
+			this->tableSuffix->Size = System::Drawing::Size(25, 13);
+			this->tableSuffix->TabIndex = 9;
+			this->tableSuffix->Text = L"of 0";
 			// 
 			// MainForm
 			// 
@@ -245,30 +402,32 @@ namespace UQMPalEd {
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
 			this->BackColor = System::Drawing::SystemColors::ActiveBorder;
 			this->ClientSize = System::Drawing::Size(624, 441);
-			this->Controls->Add(this->label2);
-			this->Controls->Add(this->comboBox1);
-			this->Controls->Add(this->label1);
-			this->Controls->Add(this->richTextBox1);
-			this->Controls->Add(this->pictureBox1);
-			this->Controls->Add(this->menuStrip1);
+			this->Controls->Add(this->controlPanel);
+			this->Controls->Add(this->tableViewer);
+			this->Controls->Add(this->debug_title);
+			this->Controls->Add(this->debug);
+			this->Controls->Add(this->menuStrip);
 			this->Icon = (cli::safe_cast<System::Drawing::Icon^>(resources->GetObject(L"$this.Icon")));
-			this->MainMenuStrip = this->menuStrip1;
+			this->MainMenuStrip = this->menuStrip;
 			this->MaximizeBox = false;
 			this->MinimizeBox = false;
 			this->Name = L"MainForm";
 			this->StartPosition = System::Windows::Forms::FormStartPosition::CenterScreen;
-			this->Text = L"Ur-Quan Masters Palette Editor v0.0.3";
-			this->menuStrip1->ResumeLayout(false);
-			this->menuStrip1->PerformLayout();
-			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictureBox1))->EndInit();
+			this->Text = L"Ur-Quan Masters Palette Editor v0.0.5";
+			this->menuStrip->ResumeLayout(false);
+			this->menuStrip->PerformLayout();
+			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->tableViewer))->EndInit();
+			this->controlPanel->ResumeLayout(false);
+			this->controlPanel->PerformLayout();
 			this->ResumeLayout(false);
 			this->PerformLayout();
 
 		}
 #pragma endregion
-	private: System::Void openToolStripMenuItem_Click(System::Object^ sender, System::EventArgs^ e);
-	private: System::Void exitToolStripMenuItem1_Click(System::Object^ sender, System::EventArgs^ e);
-	private: System::Void comboBox1_SelectedIndexChanged(System::Object^ sender, System::EventArgs^ e);
-	private: System::Void exitToolStripMenuItem2_Click(System::Object^ sender, System::EventArgs^ e);
+	private: System::Void openFile_Button_Click(System::Object^ sender, System::EventArgs^ e);
+	private: System::Void closeCurrent_Button_Click(System::Object^ sender, System::EventArgs^ e);
+	private: System::Void tableChooser_SelectedIndexChanged(System::Object^ sender, System::EventArgs^ e);
+	private: System::Void exit_Button_Click(System::Object^ sender, System::EventArgs^ e);
+	private: System::Void segmentChooser_SelectedIndexChanged(System::Object^ sender, System::EventArgs^ e);
 };
 }

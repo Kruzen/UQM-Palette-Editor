@@ -1,3 +1,20 @@
+// Ur-Quan Masters Palette Editor v0.0.5
+
+/*
+ *	This program is created as a tool to view/modify/create
+ *	Ur-Quan Masters .ct (color table) files. No source code from
+ *	the original game was used. Program algorithms are based on dev doc
+ *	file (see ..\doc\devel\strtab file in Ur-Quan Masters repository).
+ *
+ *	"Ur-Quan Masters" was originally created by Fred Ford and Paul Reiche III.
+ *	Copyright Paul Reiche, Fred Ford. 1992-2002
+ *	All trademarks belong to their respective owners.
+ *
+ *	This is a FREE software. DO NOT use it for financial profit.
+ *	Created by Kruzen. 2022
+ */
+
+
 // .ct file handler header
 #include <fstream>
 #include "ColorTable.h"
@@ -14,10 +31,8 @@
 #define UNUSED NUM_OF_TABLES + 4
 #define LENGTH_OF_TECH_BYTES UNUSED
 #define NUM_BYTES_PER_TABLE_LENGTH 4
-#define MAX_COLORS_PER_TABLE 256
 
-using namespace System;
-using namespace System::IO;
+using namespace CTable;
 
 namespace Handler
 {
@@ -25,26 +40,37 @@ namespace Handler
 	{
 	private:
 		String^ fileName;
-		String^ content;
+		String^ content;// for debug
 		int tableCount;
-		int segCount;
-		int currIndex;
+		array<ColorTable^>^ table;
 		array<int>^ tableLength;
-		array<Color>^ currTable;
-		bool segMode;
-		void provokeMessageBox(String^ s, bool err);
-		bool checkFileFormat(BinaryReader^ br);
+		void reInitValues(String^ fileName, int tableCount, array<int>^ tableLength);
 	public:
 		File_Handler(void);
 		~File_Handler();
-		void setFileName(String^ name);
+		void checkFileFormat(String^ fname);
 		void extractContent(void);
-		array<Color>^ getCurrentTable();
-		void setCurrentTable(int index);
+		array<Color>^ getTable(int t_index, int s_index);
+		array<Color>^ getTable(void);
+		int getNumSegs(int t_index);
+		int getNumColors(int t_index);
+		void setFileName(String^ name);
 		String^ getFileName(void);
 		int getNumTables(void);
-		int getCurrIndex(void);
+		int getNumSegColors(int t_index, int s_index);
 	protected:
 		!File_Handler();
+	};
+
+	ref class CTException : Exception
+	{
+	private:
+		String^ message;
+		bool warning;
+	public:
+		CTException(void);
+		CTException(String^ message, bool warning);
+		bool IsWarning(void);
+		String^ ToString(void) override;
 	};
 }
