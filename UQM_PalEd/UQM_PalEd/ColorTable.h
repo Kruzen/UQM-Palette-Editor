@@ -17,7 +17,7 @@
  */
 
 
-// color table and segmet header
+ // color table and segmet header
 #pragma once
 
 #define MAX_COLORS_PER_TABLE 256
@@ -55,21 +55,21 @@ namespace CTable
 	protected:
 		!Segment(void);
 	};
- /*
-  * Color table is a structure that is contained within .ct file
-  * It is a string of bytes in length of multiples of 3 plus 2 bytes for indexes
-  * While most of the time table length is 770 bytes (2 bytes for indexes plus 3 bytes per color as RGB value)
-  * technically it could be any length if it does not contradict described above rule
-  * In that case table is split into several segments
-  * However most of default UQM tables contain 1 segment with 256 colors
-  */
+	/*
+	 * Color table is a structure that is contained within .ct file
+	 * It is a string of bytes in length of multiples of 3 plus 2 bytes for indexes
+	 * While most of the time table length is 770 bytes (2 bytes for indexes plus 3 bytes per color as RGB value)
+	 * technically it could be any length if it does not contradict described above rule
+	 * In that case table is split into several segments
+	 * However most of default UQM tables contain 1 segment with 256 colors
+	 */
 	ref class ColorTable
 	{
 	private:
 		int numSegs;
 		int numColors;
 		array<Segment^>^ seg;
-	public:		
+	public:
 		ColorTable(void);
 		~ColorTable(void);
 		int getNumSegs(void);
@@ -84,4 +84,3 @@ namespace CTable
 		!ColorTable(void);
 	};
 }
-

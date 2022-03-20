@@ -17,7 +17,7 @@
  */
 
 
-//.ct handling
+ //.ct handling
 
 #include "File_Handler.h"
 
@@ -218,10 +218,10 @@ int Handler::File_Handler::getNumColors(int t_index)
 
 void File_Handler::setFileName(String^ name)
 {
-	if (name)
-		fileName = name;
-	else
-		fileName = "Unidentified";
+    if (name)
+        fileName = name;
+    else
+        fileName = "Unidentified";
 }
 
 String^ File_Handler::getFileName(void)

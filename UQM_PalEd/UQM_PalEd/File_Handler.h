@@ -15,7 +15,7 @@
  */
 
 
-// .ct file handler header
+ // .ct file handler header
 #include <fstream>
 #include "ColorTable.h"
 

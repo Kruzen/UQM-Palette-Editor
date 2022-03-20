@@ -20,6 +20,7 @@
 #include <Windows.h>
 #include <WinBase.h>
 #include "MainForm.h"
+#include "resource.h"
 
 using namespace System;
 using namespace System::Windows::Forms;
@@ -131,12 +132,12 @@ Image^ UQMPalEd::MainForm::getImageFromRes(long resource_ID)
 
 	HMODULE hInst = NULL;
 	HRSRC hResource = ::FindResource(hInst, MAKEINTRESOURCE(resource_ID), L"PNG");
-	if (!hResource) 
+	if (!hResource)
 		return nullptr;
 
 	DWORD Size = SizeofResource(hInst, hResource);
 	HGLOBAL MemoryHandle = LoadResource(hInst, hResource);
-	if (MemoryHandle == NULL) 
+	if (MemoryHandle == NULL)
 		return nullptr;
 
 	cli::array<BYTE>^ MemPtr = gcnew array<BYTE>(Size + 2);
@@ -179,11 +180,11 @@ System::Void UQMPalEd::MainForm::openFile_Button_Click(System::Object^ sender, S
 	}
 	// at this point no exceptions should occur
 	displayed = 0;
-	fillTableView(h->getTable());	
+	fillTableView(h->getTable());
 
 	fillDropDownTables(h->getNumTables());
 	fillDropDownSegs(h->getNumSegs(0));
-	
+
 	tableSuffix->Text = "of " + h->getNumTables();
 	segmentSuffix->Text = "of " + h->getNumSegs(0);
 	CiT_value->Text = h->getNumColors(0).ToString();

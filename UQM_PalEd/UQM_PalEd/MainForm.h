@@ -18,7 +18,6 @@
 
 
 #include "File_Handler.h"
-#include "resource.h"
 
 #pragma once
 
@@ -36,7 +35,7 @@ namespace UQMPalEd {
 	using namespace System::Drawing;
 
 	/// <summary>
-	/// Сводка для MainForm
+	/// —водка дл¤ MainForm
 	/// </summary>
 	public ref class MainForm : public System::Windows::Forms::Form
 	{
@@ -65,13 +64,13 @@ namespace UQMPalEd {
 	private: System::Windows::Forms::Label^ CiS_title;
 
 		   Bitmap^ background;
-		void invokeMessageBox(String^ s, bool err);
-		void fillTableView(array<Color>^ table);
-		void fillDropDownSegs(int numSegs);
-		void fillDropDownTables(int numTables);
-		void clearTableView(void);
-		void closeCurrent(void);
-		Image^ getImageFromRes(long resource_ID);
+		   void invokeMessageBox(String^ s, bool err);
+		   void fillTableView(array<Color>^ table);
+		   void fillDropDownSegs(int numSegs);
+		   void fillDropDownTables(int numTables);
+		   void clearTableView(void);
+		   void closeCurrent(void);
+		   Image^ getImageFromRes(long resource_ID);
 	private: System::Windows::Forms::RichTextBox^ debug;
 	private: System::Windows::Forms::Label^ debug_title;
 
@@ -85,10 +84,10 @@ namespace UQMPalEd {
 
 	private: System::Windows::Forms::PictureBox^ tableViewer;
 
-		
+
 	protected:
 		/// <summary>
-		/// Освободить все используемые ресурсы.
+		/// ќсвободить все используемые ресурсы.
 		/// </summary>
 		~MainForm()
 		{
@@ -118,13 +117,13 @@ namespace UQMPalEd {
 
 	private:
 		/// <summary>
-		/// Обязательная переменная конструктора.
+		/// ќб¤зательна¤ переменна¤ конструктора.
 		/// </summary>
-		System::ComponentModel::Container ^components;
+		System::ComponentModel::Container^ components;
 
 #pragma region Windows Form Designer generated code
 		/// <summary>
-		/// Требуемый метод для поддержки конструктора — не изменяйте 
+		/// “ребуемый метод дл¤ поддержки конструктора Ч не измен¤йте 
 		/// содержимое этого метода с помощью редактора кода.
 		/// </summary>
 		void InitializeComponent(void)
@@ -431,5 +430,5 @@ namespace UQMPalEd {
 	private: System::Void tableChooser_SelectedIndexChanged(System::Object^ sender, System::EventArgs^ e);
 	private: System::Void exit_Button_Click(System::Object^ sender, System::EventArgs^ e);
 	private: System::Void segmentChooser_SelectedIndexChanged(System::Object^ sender, System::EventArgs^ e);
-};
+	};
 }
