@@ -25,6 +25,9 @@ using namespace CTable;
 CTable::Segment::Segment(void)
 {// constructor
     length = 1;
+    table = gcnew array<Color>(1);
+    byte_table = gcnew array<Byte>(BYTES_PER_COLOR);
+    //p_table should be null if not declared
 }
 
 CTable::Segment::~Segment(void)
@@ -42,6 +45,17 @@ void CTable::Segment::setSegLength(int l)
     length = l;
 }
 
+void CTable::Segment::setBytes(array<Byte>^ b)
+{
+    byte_table = gcnew array<Byte>(b->Length);
+    byte_table = b;
+}
+
+array<Byte>^ CTable::Segment::getBytes(void)
+{
+    return byte_table;
+}
+
 void CTable::Segment::fillTable(array<Byte>^ b)
 {// build colors from byte array that has been read from file
     if (length != (b->Length / 3))
@@ -56,6 +70,29 @@ void CTable::Segment::fillTable(array<Byte>^ b)
         for (int j = 0; j < BYTES_PER_COLOR; j++)
         {
             clr[j] = b[i * BYTES_PER_COLOR + j];
+        }
+
+        table[i] = Color::FromArgb(clr[RED], clr[GREEN], clr[BLUE]);
+    }
+}
+
+void CTable::Segment::fillTable(void)
+{// same, but from previously set byte_table
+    if (!byte_table)
+        throw gcnew System::Exception("Byte table is not declaired!");
+
+    if (length != (byte_table->Length / 3))
+        throw gcnew System::Exception("Length of current segment is not matched to amount of presented bytes!");
+
+    array<Byte>^ clr = gcnew array<Byte>(BYTES_PER_COLOR);
+
+    table = gcnew array<Color>(length);
+
+    for (int i = 0; i < table->Length; i++)
+    {
+        for (int j = 0; j < BYTES_PER_COLOR; j++)
+        {
+            clr[j] = byte_table[i * BYTES_PER_COLOR + j];
         }
 
         table[i] = Color::FromArgb(clr[RED], clr[GREEN], clr[BLUE]);
@@ -87,7 +124,7 @@ array<Color>^ CTable::Segment::returnPTable(void)
     if (p_table)
         return p_table;
     else
-        throw gcnew System::Exception("Planet in-game palette is not declared!");
+        return table;
 }
 
 CTable::Segment::!Segment(void)
@@ -108,6 +145,8 @@ ColorTable::ColorTable(void)
 {// constructor
     numSegs = 1;
     numColors = MAX_COLORS_PER_TABLE;
+    isPlanet = false;
+    seg = gcnew array<Segment^>(1);
 }
 
 CTable::ColorTable::~ColorTable(void)
@@ -130,6 +169,11 @@ int CTable::ColorTable::getSegLength(int index)
     return seg[index]->getSegLength();
 }
 
+bool CTable::ColorTable::getPlanetCond(void)
+{
+    return isPlanet;
+}
+
 void CTable::ColorTable::setNumSegs(int num)
 {// set number of segments and declare them
     numSegs = num;
@@ -148,9 +192,18 @@ void CTable::ColorTable::setSegLength(int index, int l)
     seg[index]->setSegLength(l);
 }
 
+void CTable::ColorTable::setPlanetCond(bool isPlanet)
+{
+    this->isPlanet = isPlanet;
+}
+
 void CTable::ColorTable::setSeg(int index, array<Byte>^ b)
 {
-    seg[index]->fillTable(b);
+    seg[index]->setBytes(b);
+    seg[index]->fillTable();
+
+    if (this->isPlanet)
+        seg[index]->tableToPTable();
 }
 
 array<Color>^ CTable::ColorTable::returnSeg(int index)
@@ -159,6 +212,19 @@ array<Color>^ CTable::ColorTable::returnSeg(int index)
         return seg[index]->returnTable();
     else
         throw gcnew System::Exception("Incorrect seg index!");
+}
+
+array<Color>^ CTable::ColorTable::returnSeg(int index, bool isPlanet)
+{
+    if (index >= numSegs)
+        throw gcnew System::Exception("Incorrect seg index!");
+    else
+    {
+        if (isPlanet)
+            return seg[index]->returnPTable();
+        else
+            return seg[index]->returnTable();
+    }
 }
 
 CTable::ColorTable::!ColorTable(void)

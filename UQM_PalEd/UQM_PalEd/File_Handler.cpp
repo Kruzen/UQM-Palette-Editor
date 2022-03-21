@@ -167,6 +167,10 @@ void Handler::File_Handler::extractContent(void)
     BinaryReader^ br = gcnew BinaryReader(fs);
     int endByte_index;
     int numBytes;
+    bool isPlanet = false;
+
+    if (tableCount == 3)// right condition for a planet.ct
+        isPlanet = (tableLength[0] == 386 && tableLength[1] == 386 && tableLength[2] == 386);
 
     br->BaseStream->Position = LENGTH_OF_TECH_BYTES + (NUM_BYTES_PER_TABLE_LENGTH * tableCount);
 
@@ -179,6 +183,7 @@ void Handler::File_Handler::extractContent(void)
         else
             segs += (((tableLength[i] - 2) % (MAX_BYTES_PER_SEGMENT)) != 0);// +1 segment if it's <256 colors in length 
 
+        table[i]->setPlanetCond(isPlanet);
         table[i]->setNumSegs(segs);
         table[i]->setNumColors((tableLength[i] - 2) / 3);
 
@@ -201,9 +206,19 @@ array<Color>^ File_Handler::getTable(int t_index, int s_index)
     return table[t_index]->returnSeg(s_index);
 }
 
+array<Color>^ Handler::File_Handler::getTable(int t_index, int s_index, bool filter)
+{
+    return table[t_index]->returnSeg(s_index, filter);
+}
+
 array<Color>^ Handler::File_Handler::getTable(void)
 {
     return table[0]->returnSeg(0);
+}
+
+bool Handler::File_Handler::getTablePlanetCond(int t_index)
+{
+    return table[t_index]->getPlanetCond();
 }
 
 int Handler::File_Handler::getNumSegs(int t_index)

@@ -51,7 +51,9 @@ namespace Handler
 		void checkFileFormat(String^ fname);
 		void extractContent(void);
 		array<Color>^ getTable(int t_index, int s_index);
+		array<Color>^ getTable(int t_index, int s_index, bool filter);
 		array<Color>^ getTable(void);
+		bool getTablePlanetCond(int t_index);
 		int getNumSegs(int t_index);
 		int getNumColors(int t_index);
 		void setFileName(String^ name);

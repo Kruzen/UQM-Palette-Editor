@@ -63,6 +63,12 @@ void UQMPalEd::MainForm::fillTableView(array<Color>^ table)
 	int x = 0;
 	int y = 0;
 
+	if (!viewFilter->Checked)
+	{// if we are drawing p_table (planet filter is on) - keep true colors
+		currView = gcnew array<Color>(table->Length);
+		currView = table;
+	}
+
 	if (getImageFromRes(IDB_PNG1))
 		bmp = gcnew Bitmap(getImageFromRes(IDB_PNG1));
 	else
@@ -105,11 +111,16 @@ void UQMPalEd::MainForm::fillDropDownTables(int numTables)
 void UQMPalEd::MainForm::clearTableView(void)
 {// back to default image	
 	tableViewer->Image = background;
+	Array::Clear(currView, 0, currView->Length);
+	delete currView;
 }
 
 void UQMPalEd::MainForm::closeCurrent(void)
 {// set all UI stuff to default
-	clearTableView();
+	this->clearTableView();
+	t_displayed = 0;
+	s_displayed = 0;
+	mouseOver_index = MAXDWORD;
 	tableChooser->Items->Clear();
 	tableChooser->Enabled = false;
 	segmentChooser->Items->Clear();
@@ -120,7 +131,31 @@ void UQMPalEd::MainForm::closeCurrent(void)
 	segmentSuffix->Text = "of 0";
 	CiT_value->Text = "0";
 	CiS_value->Text = "0";
-	controlPanel->Text = "Control Panel";
+	controlPanel->Text = "Control Panel";	
+	viewFilter->Enabled = false;
+	viewFilter->Visible = false;
+	viewFilter->Checked = false;
+	this->toggleBrushUI(false);
+}
+
+void UQMPalEd::MainForm::toggleFilter(bool toggle)
+{
+	viewFilter->Checked = false;
+	viewFilter->Enabled = toggle;
+	viewFilter->Visible = toggle;
+}
+
+void UQMPalEd::MainForm::toggleBrushUI(bool toggle)
+{
+	brushColorView->Visible = toggle;
+	hexValue->Visible = toggle;
+	B_RTitle->Visible = toggle;
+	B_RValue->Visible = toggle;
+	B_GTitle->Visible = toggle;
+	B_GValue->Visible = toggle;
+	B_BTitle->Visible = toggle;
+	B_BValue->Visible = toggle;
+	B_CIndex->Visible = toggle;
 }
 
 Image^ UQMPalEd::MainForm::getImageFromRes(long resource_ID)
@@ -179,11 +214,14 @@ System::Void UQMPalEd::MainForm::openFile_Button_Click(System::Object^ sender, S
 		return;
 	}
 	// at this point no exceptions should occur
-	displayed = 0;
+	t_displayed = 0;
+	s_displayed = 0;
+	mouseOver_index = MAXDWORD;
 	fillTableView(h->getTable());
 
 	fillDropDownTables(h->getNumTables());
 	fillDropDownSegs(h->getNumSegs(0));
+	toggleFilter(h->getTablePlanetCond(0));
 
 	tableSuffix->Text = "of " + h->getNumTables();
 	segmentSuffix->Text = "of " + h->getNumSegs(0);
@@ -201,14 +239,14 @@ System::Void UQMPalEd::MainForm::closeCurrent_Button_Click(System::Object^ sende
 
 System::Void UQMPalEd::MainForm::tableChooser_SelectedIndexChanged(System::Object^ sender, System::EventArgs^ e)
 {// switch viewer to a 0-index segment of a new table
-	if (tableChooser->SelectedIndex != displayed)
+	if (tableChooser->SelectedIndex != t_displayed)
 	{
-		fillDropDownSegs(h->getNumSegs(tableChooser->SelectedIndex));
-		fillTableView(h->getTable(tableChooser->SelectedIndex, 0));
-		displayed = tableChooser->SelectedIndex;
-		segmentSuffix->Text = "of " + h->getNumSegs(displayed);
-		CiT_value->Text = h->getNumColors(displayed).ToString();
-		CiS_value->Text = h->getNumSegColors(displayed, 0).ToString();
+		t_displayed = tableChooser->SelectedIndex;
+		fillDropDownSegs(h->getNumSegs(t_displayed));
+		fillTableView(h->getTable(t_displayed, 0, viewFilter->Checked));
+		segmentSuffix->Text = "of " + h->getNumSegs(t_displayed);
+		CiT_value->Text = h->getNumColors(t_displayed).ToString();
+		CiS_value->Text = h->getNumSegColors(t_displayed, 0).ToString();
 	}
 }
 
@@ -219,6 +257,64 @@ System::Void UQMPalEd::MainForm::exit_Button_Click(System::Object^ sender, Syste
 
 System::Void UQMPalEd::MainForm::segmentChooser_SelectedIndexChanged(System::Object^ sender, System::EventArgs^ e)
 {// switch viewver to a new segment of a current table
-	fillTableView(h->getTable(tableChooser->SelectedIndex, segmentChooser->SelectedIndex));
-	CiS_value->Text = h->getNumSegColors(tableChooser->SelectedIndex, segmentChooser->SelectedIndex).ToString();
+	if (segmentChooser->SelectedIndex != s_displayed)
+	{
+		s_displayed = segmentChooser->SelectedIndex;
+		//no need to pass viewFilter check here, planet.ct(s) always have 1 segment per table
+		fillTableView(h->getTable(t_displayed, s_displayed));
+		CiS_value->Text = h->getNumSegColors(t_displayed, s_displayed).ToString();
+	}
+}
+
+System::Void UQMPalEd::MainForm::viewFilter_CheckedChanged(System::Object^ sender, System::EventArgs^ e)
+{
+	if (viewFilter->Enabled)
+		fillTableView(h->getTable(t_displayed, s_displayed, viewFilter->Checked));
+}
+
+System::Void UQMPalEd::MainForm::tableViewer_MouseMove(System::Object^ sender, System::Windows::Forms::MouseEventArgs^ e)
+{
+	int x_index = MIN((Cursor->Position.X - tableViewer->Location.X - this->Location.X - 7) / 20, 15);
+	int y_index = MIN((Cursor->Position.Y - tableViewer->Location.Y - this->Location.Y - 30) / 20, 15);
+	int n_index = y_index * 16 + x_index;
+
+	if (currView && n_index != mouseOver_index)
+	{
+		mouseOver_index = n_index;
+
+		Bitmap^ b_bmp = gcnew Bitmap(brushColorView->Size.Width, brushColorView->Size.Height);
+		Graphics^ g = Graphics::FromImage(b_bmp);
+		Color br;		
+
+		if (mouseOver_index < currView->Length)
+		{
+			br = currView[mouseOver_index];
+
+			g->FillRectangle(gcnew SolidBrush(br), 0, 0, b_bmp->Width, b_bmp->Height);
+
+			if (!brushColorView->Visible)
+				this->toggleBrushUI(true);
+
+			B_CIndex->Text = "Color: " + mouseOver_index.ToString();
+			brushColorView->Image = b_bmp;
+			hexValue->Text = "#" + br.R.ToString("X2") + br.G.ToString("X2") + br.B.ToString("X2");
+			B_RValue->Text = br.R.ToString();
+			B_GValue->Text = br.G.ToString();
+			B_BValue->Text = br.B.ToString();
+		}
+		else
+			this->toggleBrushUI(false);
+	}
+}
+
+System::Void UQMPalEd::MainForm::tableViewer_MouseEnter(System::Object^ sender, System::EventArgs^ e)
+{
+	if (currView)
+		this->toggleBrushUI(true);
+
+}
+
+System::Void UQMPalEd::MainForm::tableViewer_MouseLeave(System::Object^ sender, System::EventArgs^ e)
+{
+	this->toggleBrushUI(false);
 }
