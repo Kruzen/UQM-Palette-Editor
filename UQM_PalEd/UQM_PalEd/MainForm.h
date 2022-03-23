@@ -16,12 +16,7 @@
  *	Created by Kruzen. 2022
  */
 
-
-#include "File_Handler.h"
-
 #pragma once
-
-using namespace Handler;
 
 namespace UQMPalEd {
 
@@ -40,7 +35,6 @@ namespace UQMPalEd {
 	public:
 		MainForm(void);
 	private:
-		File_Handler^ h;
 		int t_displayed;
 		int s_displayed;
 		array<Color>^ currView;
@@ -153,6 +147,7 @@ namespace UQMPalEd {
 			this->segmentSuffix = (gcnew System::Windows::Forms::Label());
 			this->tableSuffix = (gcnew System::Windows::Forms::Label());
 			this->brushBox = (gcnew System::Windows::Forms::GroupBox());
+			this->B_CIndex = (gcnew System::Windows::Forms::Label());
 			this->B_BValue = (gcnew System::Windows::Forms::Label());
 			this->B_GValue = (gcnew System::Windows::Forms::Label());
 			this->B_RValue = (gcnew System::Windows::Forms::Label());
@@ -161,7 +156,6 @@ namespace UQMPalEd {
 			this->B_RTitle = (gcnew System::Windows::Forms::Label());
 			this->hexValue = (gcnew System::Windows::Forms::Label());
 			this->brushColorView = (gcnew System::Windows::Forms::PictureBox());
-			this->B_CIndex = (gcnew System::Windows::Forms::Label());
 			this->menuStrip->SuspendLayout();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->tableViewer))->BeginInit();
 			this->controlPanel->SuspendLayout();
@@ -284,7 +278,7 @@ namespace UQMPalEd {
 			// 
 			this->tableChooser->DropDownStyle = System::Windows::Forms::ComboBoxStyle::DropDownList;
 			this->tableChooser->Enabled = false;
-			this->tableChooser->Location = System::Drawing::Point(49, 22);
+			this->tableChooser->Location = System::Drawing::Point(55, 22);
 			this->tableChooser->Name = L"tableChooser";
 			this->tableChooser->Size = System::Drawing::Size(50, 21);
 			this->tableChooser->TabIndex = 4;
@@ -295,9 +289,9 @@ namespace UQMPalEd {
 			this->T_Title->AutoSize = true;
 			this->T_Title->Location = System::Drawing::Point(6, 25);
 			this->T_Title->Name = L"T_Title";
-			this->T_Title->Size = System::Drawing::Size(37, 13);
+			this->T_Title->Size = System::Drawing::Size(43, 13);
 			this->T_Title->TabIndex = 5;
-			this->T_Title->Text = L"Table:";
+			this->T_Title->Text = L"Palette:";
 			// 
 			// tableViewer
 			// 
@@ -315,7 +309,7 @@ namespace UQMPalEd {
 			// S_Title
 			// 
 			this->S_Title->AutoSize = true;
-			this->S_Title->Location = System::Drawing::Point(171, 25);
+			this->S_Title->Location = System::Drawing::Point(159, 25);
 			this->S_Title->Name = L"S_Title";
 			this->S_Title->Size = System::Drawing::Size(52, 13);
 			this->S_Title->TabIndex = 7;
@@ -326,7 +320,7 @@ namespace UQMPalEd {
 			this->segmentChooser->DropDownStyle = System::Windows::Forms::ComboBoxStyle::DropDownList;
 			this->segmentChooser->Enabled = false;
 			this->segmentChooser->FormattingEnabled = true;
-			this->segmentChooser->Location = System::Drawing::Point(229, 22);
+			this->segmentChooser->Location = System::Drawing::Point(217, 22);
 			this->segmentChooser->Name = L"segmentChooser";
 			this->segmentChooser->Size = System::Drawing::Size(50, 21);
 			this->segmentChooser->TabIndex = 8;
@@ -348,7 +342,7 @@ namespace UQMPalEd {
 			this->controlPanel->Controls->Add(this->S_Title);
 			this->controlPanel->Location = System::Drawing::Point(12, 27);
 			this->controlPanel->Name = L"controlPanel";
-			this->controlPanel->Size = System::Drawing::Size(340, 96);
+			this->controlPanel->Size = System::Drawing::Size(320, 96);
 			this->controlPanel->TabIndex = 9;
 			this->controlPanel->TabStop = false;
 			this->controlPanel->Text = L"Control Panel";
@@ -357,7 +351,7 @@ namespace UQMPalEd {
 			// 
 			this->viewFilter->AutoSize = true;
 			this->viewFilter->Enabled = false;
-			this->viewFilter->Location = System::Drawing::Point(174, 73);
+			this->viewFilter->Location = System::Drawing::Point(162, 73);
 			this->viewFilter->Name = L"viewFilter";
 			this->viewFilter->Size = System::Drawing::Size(156, 17);
 			this->viewFilter->TabIndex = 10;
@@ -371,7 +365,7 @@ namespace UQMPalEd {
 			this->CiS_value->AutoSize = true;
 			this->CiS_value->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 8.25F, System::Drawing::FontStyle::Bold, System::Drawing::GraphicsUnit::Point,
 				static_cast<System::Byte>(204)));
-			this->CiS_value->Location = System::Drawing::Point(295, 56);
+			this->CiS_value->Location = System::Drawing::Point(283, 56);
 			this->CiS_value->Name = L"CiS_value";
 			this->CiS_value->Size = System::Drawing::Size(14, 13);
 			this->CiS_value->TabIndex = 14;
@@ -380,7 +374,7 @@ namespace UQMPalEd {
 			// CiS_title
 			// 
 			this->CiS_title->AutoSize = true;
-			this->CiS_title->Location = System::Drawing::Point(171, 56);
+			this->CiS_title->Location = System::Drawing::Point(159, 56);
 			this->CiS_title->Name = L"CiS_title";
 			this->CiS_title->Size = System::Drawing::Size(129, 13);
 			this->CiS_title->TabIndex = 13;
@@ -391,7 +385,7 @@ namespace UQMPalEd {
 			this->CiT_value->AutoSize = true;
 			this->CiT_value->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 8.25F, System::Drawing::FontStyle::Bold, System::Drawing::GraphicsUnit::Point,
 				static_cast<System::Byte>(204)));
-			this->CiT_value->Location = System::Drawing::Point(113, 56);
+			this->CiT_value->Location = System::Drawing::Point(122, 56);
 			this->CiT_value->Name = L"CiT_value";
 			this->CiT_value->Size = System::Drawing::Size(14, 13);
 			this->CiT_value->TabIndex = 12;
@@ -402,14 +396,14 @@ namespace UQMPalEd {
 			this->CiT_title->AutoSize = true;
 			this->CiT_title->Location = System::Drawing::Point(6, 56);
 			this->CiT_title->Name = L"CiT_title";
-			this->CiT_title->Size = System::Drawing::Size(112, 13);
+			this->CiT_title->Size = System::Drawing::Size(121, 13);
 			this->CiT_title->TabIndex = 11;
-			this->CiT_title->Text = L"Colors in current table:";
+			this->CiT_title->Text = L"Colors in current palette:";
 			// 
 			// segmentSuffix
 			// 
 			this->segmentSuffix->AutoSize = true;
-			this->segmentSuffix->Location = System::Drawing::Point(285, 25);
+			this->segmentSuffix->Location = System::Drawing::Point(272, 25);
 			this->segmentSuffix->Name = L"segmentSuffix";
 			this->segmentSuffix->Size = System::Drawing::Size(25, 13);
 			this->segmentSuffix->TabIndex = 10;
@@ -418,7 +412,7 @@ namespace UQMPalEd {
 			// tableSuffix
 			// 
 			this->tableSuffix->AutoSize = true;
-			this->tableSuffix->Location = System::Drawing::Point(105, 25);
+			this->tableSuffix->Location = System::Drawing::Point(111, 25);
 			this->tableSuffix->Name = L"tableSuffix";
 			this->tableSuffix->Size = System::Drawing::Size(25, 13);
 			this->tableSuffix->TabIndex = 9;
@@ -442,6 +436,18 @@ namespace UQMPalEd {
 			this->brushBox->TabIndex = 10;
 			this->brushBox->TabStop = false;
 			this->brushBox->Text = L"Brush";
+			// 
+			// B_CIndex
+			// 
+			this->B_CIndex->AutoSize = true;
+			this->B_CIndex->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 8.25F, static_cast<System::Drawing::FontStyle>((System::Drawing::FontStyle::Bold | System::Drawing::FontStyle::Italic)),
+				System::Drawing::GraphicsUnit::Point, static_cast<System::Byte>(204)));
+			this->B_CIndex->Location = System::Drawing::Point(10, 20);
+			this->B_CIndex->Name = L"B_CIndex";
+			this->B_CIndex->Size = System::Drawing::Size(65, 13);
+			this->B_CIndex->TabIndex = 8;
+			this->B_CIndex->Text = L"Color: 255";
+			this->B_CIndex->Visible = false;
 			// 
 			// B_BValue
 			// 
@@ -529,18 +535,6 @@ namespace UQMPalEd {
 			this->brushColorView->Size = System::Drawing::Size(49, 34);
 			this->brushColorView->TabIndex = 0;
 			this->brushColorView->TabStop = false;
-			// 
-			// B_CIndex
-			// 
-			this->B_CIndex->AutoSize = true;
-			this->B_CIndex->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 8.25F, static_cast<System::Drawing::FontStyle>((System::Drawing::FontStyle::Bold | System::Drawing::FontStyle::Italic)),
-				System::Drawing::GraphicsUnit::Point, static_cast<System::Byte>(204)));
-			this->B_CIndex->Location = System::Drawing::Point(10, 20);
-			this->B_CIndex->Name = L"B_CIndex";
-			this->B_CIndex->Size = System::Drawing::Size(65, 13);
-			this->B_CIndex->TabIndex = 8;
-			this->B_CIndex->Text = L"Color: 255";
-			this->B_CIndex->Visible = false;
 			// 
 			// MainForm
 			// 

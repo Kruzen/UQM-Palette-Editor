@@ -73,7 +73,9 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <TargetName>UQM Palette Editor 0.0.8</TargetName>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -110,6 +112,8 @@
     </ClCompile>
     <Link>
       <AdditionalDependencies />
+      <SubSystem>Windows</SubSystem>
+      <EntryPointSymbol>main</EntryPointSymbol>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -120,16 +124,17 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="ColorTable.cpp" />
-    <ClCompile Include="File_Handler.cpp" />
+    <ClCompile Include="FileManager.cpp" />
     <ClCompile Include="MainForm.cpp" />
+    <ClCompile Include="Palette.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ColorTable.h" />
-    <ClInclude Include="File_Handler.h" />
+    <ClInclude Include="constdef.h" />
+    <ClInclude Include="FileManager.h" />
     <ClInclude Include="MainForm.h">
       <FileType>CppForm</FileType>
     </ClInclude>
+    <ClInclude Include="Palette.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>

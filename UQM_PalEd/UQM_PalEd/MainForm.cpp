@@ -24,6 +24,7 @@
 
 using namespace System;
 using namespace System::Windows::Forms;
+using namespace System::Drawing;
 
 
 [STAThreadAttribute]
@@ -48,7 +49,7 @@ UQMPalEd::MainForm::MainForm(void)
 		background = gcnew Bitmap(320, 320);
 	tableViewer->Image = background;
 
-	h = gcnew File_Handler();
+	//h = gcnew File_Handler();
 }
 
 void UQMPalEd::MainForm::invokeMessageBox(String^ s, bool err)
@@ -200,34 +201,35 @@ System::Void UQMPalEd::MainForm::openFile_Button_Click(System::Object^ sender, S
 
 	try
 	{
-		h->checkFileFormat(fname);
-		h->extractContent();
+		//h->checkFileFormat(fname);
+		//h->extractContent();
 	}
+	/*catch (CTException^ e)
+	{
+		invokeMessageBox(e->ToString(), e->IsWarning());
+		return;
+	}*/
 	catch (Exception^ e)
 	{
 		invokeMessageBox(e->ToString(), true);
 		return;
 	}
-	catch (CTException^ e)
-	{
-		invokeMessageBox(e->ToString(), e->IsWarning());
-		return;
-	}
+
 	// at this point no exceptions should occur
 	t_displayed = 0;
 	s_displayed = 0;
 	mouseOver_index = MAXDWORD;
-	fillTableView(h->getTable());
+	//fillTableView(h->getTable());
 
-	fillDropDownTables(h->getNumTables());
+	/*/fillDropDownTables(h->getNumTables());
 	fillDropDownSegs(h->getNumSegs(0));
-	toggleFilter(h->getTablePlanetCond(0));
+	toggleFilter(h->getTablePlanetCond(0));*/
 
-	tableSuffix->Text = "of " + h->getNumTables();
-	segmentSuffix->Text = "of " + h->getNumSegs(0);
-	CiT_value->Text = h->getNumColors(0).ToString();
-	CiS_value->Text = h->getNumSegColors(0, 0).ToString();
-	controlPanel->Text = "Control Panel - " + h->getFileName();
+//	tableSuffix->Text = "of " + h->getNumTables();
+//	segmentSuffix->Text = "of " + h->getNumSegs(0);
+//	CiT_value->Text = h->getNumColors(0).ToString();
+//	CiS_value->Text = h->getNumSegColors(0, 0).ToString();
+//	controlPanel->Text = "Control Panel - " + h->getFileName();
 
 	closeCurrent_Button->Enabled = true;// unlock "Close" button
 }
@@ -242,11 +244,11 @@ System::Void UQMPalEd::MainForm::tableChooser_SelectedIndexChanged(System::Objec
 	if (tableChooser->SelectedIndex != t_displayed)
 	{
 		t_displayed = tableChooser->SelectedIndex;
-		fillDropDownSegs(h->getNumSegs(t_displayed));
-		fillTableView(h->getTable(t_displayed, 0, viewFilter->Checked));
-		segmentSuffix->Text = "of " + h->getNumSegs(t_displayed);
-		CiT_value->Text = h->getNumColors(t_displayed).ToString();
-		CiS_value->Text = h->getNumSegColors(t_displayed, 0).ToString();
+	//	fillDropDownSegs(h->getNumSegs(t_displayed));
+		//fillTableView(h->getTable(t_displayed, 0, viewFilter->Checked));
+	//	segmentSuffix->Text = "of " + h->getNumSegs(t_displayed);
+	//	CiT_value->Text = h->getNumColors(t_displayed).ToString();
+	//	CiS_value->Text = h->getNumSegColors(t_displayed, 0).ToString();
 	}
 }
 
@@ -261,20 +263,20 @@ System::Void UQMPalEd::MainForm::segmentChooser_SelectedIndexChanged(System::Obj
 	{
 		s_displayed = segmentChooser->SelectedIndex;
 		//no need to pass viewFilter check here, planet.ct(s) always have 1 segment per table
-		fillTableView(h->getTable(t_displayed, s_displayed));
-		CiS_value->Text = h->getNumSegColors(t_displayed, s_displayed).ToString();
+		//fillTableView(h->getTable(t_displayed, s_displayed));
+	//	CiS_value->Text = h->getNumSegColors(t_displayed, s_displayed).ToString();
 	}
 }
 
 System::Void UQMPalEd::MainForm::viewFilter_CheckedChanged(System::Object^ sender, System::EventArgs^ e)
 {
-	if (viewFilter->Enabled)
-		fillTableView(h->getTable(t_displayed, s_displayed, viewFilter->Checked));
+	/*if (viewFilter->Enabled)
+		fillTableView(h->getTable(t_displayed, s_displayed, viewFilter->Checked));*/
 }
 
 System::Void UQMPalEd::MainForm::tableViewer_MouseMove(System::Object^ sender, System::Windows::Forms::MouseEventArgs^ e)
 {
-	int x_index = MIN((Cursor->Position.X - tableViewer->Location.X - this->Location.X - 7) / 20, 15);
+	/*int x_index = MIN((Cursor->Position.X - tableViewer->Location.X - this->Location.X - 7) / 20, 15);
 	int y_index = MIN((Cursor->Position.Y - tableViewer->Location.Y - this->Location.Y - 30) / 20, 15);
 	int n_index = y_index * 16 + x_index;
 
@@ -304,7 +306,7 @@ System::Void UQMPalEd::MainForm::tableViewer_MouseMove(System::Object^ sender, S
 		}
 		else
 			this->toggleBrushUI(false);
-	}
+	}*/
 }
 
 System::Void UQMPalEd::MainForm::tableViewer_MouseEnter(System::Object^ sender, System::EventArgs^ e)
