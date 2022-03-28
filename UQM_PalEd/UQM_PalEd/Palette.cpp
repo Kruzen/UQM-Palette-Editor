@@ -14,123 +14,248 @@
  *	Created by Kruzen. 2022
  */
 
+// palettes
 #include "Palette.h"
+#include "constdef.h"
 
+using namespace CPalette;
+using namespace System;
+
+												/* Segment */
+/*
+ *
+ *
+ *	Public methods
+ *
+ */
 void CPalette::Segment::tableToPTable(void)
-{
-	throw gcnew System::NotImplementedException();
+{// forming in-game view for planets
+	p_colors = gcnew array<Color>(length);
+	array<Byte>^ clr = gcnew array<Byte>(BYTES_PER_COLOR);
+
+	for (int i = 0; i < length; i++)
+	{
+		clr[RED] = colors[i].R >> 1;
+		clr[GREEN] = colors[i].G >> 1;
+		clr[BLUE] = colors[i].B >> 1;
+
+		p_colors[i] = Color::FromArgb(CC5TO8(clr[RED]), CC5TO8(clr[GREEN]), CC5TO8(clr[BLUE]));
+	}
 }
 
 CPalette::Segment::Segment(void)
-{
-	throw gcnew System::NotImplementedException();
+{// default constructor
+	length = 1;
+	colors = gcnew array<Color>(1);
+	colors[0] = Color::FromArgb(0, 0, 0);
+	//p_colors should be null if not declared
+}
+
+CPalette::Segment::Segment(unsigned int length, array<Color>^ colors, bool isPlanet)
+{// constructor
+	this->length = length;
+	this->colors = gcnew array<Color>(this->length);
+	this->colors = colors;
+	if (isPlanet)
+		this->tableToPTable();
 }
 
 CPalette::Segment::~Segment(void)
-{
-	throw gcnew System::NotImplementedException();
+{// destructor
+	this->!Segment();
 }
-
+/*
+ *
+ *
+ *	"get" methods
+ *
+ */
 int CPalette::Segment::getSegLength(void)
 {
-	return 0;
+	return length;
 }
 
 array<Color>^ CPalette::Segment::returnArray(void)
 {
-	throw gcnew System::NotImplementedException();
-	// TODO: вставьте здесь оператор return
+	return colors;
 }
 
 array<Color>^ CPalette::Segment::returnPArray(void)
 {
-	throw gcnew System::NotImplementedException();
-	// TODO: вставьте здесь оператор return
+	if (p_colors)
+		return p_colors;
+	else
+		return colors;
 }
-
+/*
+ *
+ *
+ *	"set" methods
+ *
+ */
 void CPalette::Segment::setSegLength(unsigned int l)
 {
-	throw gcnew System::NotImplementedException();
+	length = l;
 }
 
 void CPalette::Segment::fillArray(array<Color>^ c)
 {
-	throw gcnew System::NotImplementedException();
+	if (colors)
+	{
+		Array::Clear(colors, 0, colors->Length);
+		delete this->colors;
+	}
+	length = c->Length;		// new array - set new length to avoid de-sync
+	colors = gcnew array<Color>(length);
+	colors = c;
 }
-
+/*
+ *
+ *
+ *	Finalizer
+ *
+ */
 CPalette::Segment::!Segment(void)
 {
-	throw gcnew System::NotImplementedException();
+	length = 0;
+	if (colors)
+	{
+		Array::Clear(colors, 0, colors->Length);
+		delete colors;
+	}
+	if (p_colors)
+	{
+		Array::Clear(p_colors, 0, p_colors->Length);
+		delete p_colors;
+	}
 }
 
+
+
+
+
+
+
+
+
+												/* Palette */
+/*
+ *
+ *
+ *	Public methods
+ *
+ */
 CPalette::Palette::Palette(void)
-{
-	throw gcnew System::NotImplementedException();
+{// default constructor
+	numSegs = 1;
+	numColors = MAX_COLORS_PER_TABLE;
+	isPlanet = false;
+	seg = gcnew array<Segment^>(1);
+	seg[0] = gcnew Segment();
+}
+
+CPalette::Palette::Palette(unsigned int numSegs, unsigned int numColors, bool isPlanet)
+{// primary constructor (used after file opening)
+	this->numSegs = numSegs;
+	this->numColors = numColors;
+	this->isPlanet = isPlanet;
+	this->seg = gcnew array<Segment^>(this->numSegs);
+	for (int i = 0; i < this->numSegs; i++)
+		this->seg[i] = gcnew Segment();
 }
 
 CPalette::Palette::~Palette(void)
-{
-	throw gcnew System::NotImplementedException();
+{// destructor
+	this->!Palette();
 }
 
 int CPalette::Palette::getSegLength(int index)
 {
-	return 0;
+	return seg[index]->getSegLength();
 }
 
 void CPalette::Palette::setSegLength(int index, int l)
 {
-	throw gcnew System::NotImplementedException();
+	seg[index]->setSegLength(l);
 }
-
+/*
+ *
+ *
+ *	"get" methods
+ *
+ */
 int CPalette::Palette::getNumSegs(void)
 {
-	return 0;
+	return numSegs;
 }
 
 int CPalette::Palette::getNumColors(void)
 {
-	return 0;
+	return numColors;
 }
 
 bool CPalette::Palette::getPlanetCond(void)
 {
-	return false;
+	return isPlanet;
 }
 
 array<Color>^ CPalette::Palette::returnSeg(int index)
 {
-	throw gcnew System::NotImplementedException();
-	// TODO: вставьте здесь оператор return
+	return seg[index]->returnArray();
 }
 
 array<Color>^ CPalette::Palette::returnSeg(int index, bool isPlanet)
 {
-	throw gcnew System::NotImplementedException();
-	// TODO: вставьте здесь оператор return
+	if (isPlanet)
+		return seg[index]->returnPArray();
+	else
+		return seg[index]->returnArray();
+}
+/*
+ *
+ *
+ *	"set" methods
+ *
+ */
+void CPalette::Palette::setNumSegs(int numSegs)
+{
+	this->numSegs = numSegs;
 }
 
-void CPalette::Palette::setNumSegs(int num)
+void CPalette::Palette::setNumColors(int numColors)
 {
-	throw gcnew System::NotImplementedException();
-}
-
-void CPalette::Palette::setNumColors(int num)
-{
-	throw gcnew System::NotImplementedException();
+	this->numColors = numColors;
 }
 
 void CPalette::Palette::setPlanetCond(bool isPlanet)
 {
-	throw gcnew System::NotImplementedException();
+	this->isPlanet = isPlanet;
 }
 
 void CPalette::Palette::setSeg(int index, array<Color>^ c)
 {
-	throw gcnew System::NotImplementedException();
+	seg[index]->fillArray(c);
+	if (isPlanet)					// if out palette is a planet - also generate filtered array
+		seg[index]->tableToPTable();
 }
-
+/*
+ *
+ *
+ *	Finalizer
+ *
+ */
 CPalette::Palette::!Palette(void)
 {
-	throw gcnew System::NotImplementedException();
+	if (seg)
+	{
+		for (int i = 0; i < numSegs; i++)
+		{
+			seg[i]->~Segment();
+			delete seg[i];
+		}
+		delete seg;
+	}
+	numSegs = 0;
+	numColors = 0;
+	isPlanet = false;
 }

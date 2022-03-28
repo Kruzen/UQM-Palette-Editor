@@ -1,4 +1,4 @@
-// Ur-Quan Masters Palette Editor v0.0.5
+// Ur-Quan Masters Palette Editor v0.0.9
 
 /*
  *	This program is created as a tool to view/modify/create
@@ -17,6 +17,8 @@
  */
 
 #pragma once
+#include "ColorTable.h"
+#include "FileManager.h"
 
 namespace UQMPalEd {
 
@@ -26,6 +28,7 @@ namespace UQMPalEd {
 	using namespace System::Windows::Forms;
 	using namespace System::Data;
 	using namespace System::Drawing;
+	using namespace CTable;
 
 	/// <summary>
 	/// —водка дл¤ MainForm
@@ -52,7 +55,9 @@ namespace UQMPalEd {
 	private: System::Windows::Forms::Label^ B_CIndex;
 
 	public:
-
+		ColorTable^ ct;
+	private: System::Windows::Forms::OpenFileDialog^ importFileDialog;
+	public:
 		Bitmap^ background;
 		void invokeMessageBox(String^ s, bool err);
 		void fillTableView(array<Color>^ table);
@@ -86,9 +91,10 @@ namespace UQMPalEd {
 	private: System::Windows::Forms::ToolStripMenuItem^ openFile_Button;
 	private: System::Windows::Forms::ToolStripMenuItem^ saveAsToolStripMenuItem;
 	private: System::Windows::Forms::ToolStripMenuItem^ saveToolStripMenuItem;
-	private: System::Windows::Forms::ToolStripMenuItem^ exitToolStripMenuItem;
+	private: System::Windows::Forms::ToolStripMenuItem^ importButton;
+
 	private: System::Windows::Forms::ToolStripMenuItem^ abourToolStripMenuItem;
-	private: System::Windows::Forms::ToolStripMenuItem^ pSToolStripMenuItem;
+
 	private: System::Windows::Forms::ToolStripMenuItem^ closeCurrent_Button;
 
 
@@ -126,8 +132,7 @@ namespace UQMPalEd {
 			this->openFile_Button = (gcnew System::Windows::Forms::ToolStripMenuItem());
 			this->saveAsToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
 			this->saveToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
-			this->exitToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
-			this->pSToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
+			this->importButton = (gcnew System::Windows::Forms::ToolStripMenuItem());
 			this->closeCurrent_Button = (gcnew System::Windows::Forms::ToolStripMenuItem());
 			this->exit_Button = (gcnew System::Windows::Forms::ToolStripMenuItem());
 			this->abourToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
@@ -156,6 +161,7 @@ namespace UQMPalEd {
 			this->B_RTitle = (gcnew System::Windows::Forms::Label());
 			this->hexValue = (gcnew System::Windows::Forms::Label());
 			this->brushColorView = (gcnew System::Windows::Forms::PictureBox());
+			this->importFileDialog = (gcnew System::Windows::Forms::OpenFileDialog());
 			this->menuStrip->SuspendLayout();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->tableViewer))->BeginInit();
 			this->controlPanel->SuspendLayout();
@@ -183,7 +189,7 @@ namespace UQMPalEd {
 			// 
 			this->fileToolStripMenuItem->DropDownItems->AddRange(gcnew cli::array< System::Windows::Forms::ToolStripItem^  >(7) {
 				this->newToolStripMenuItem,
-					this->openFile_Button, this->saveAsToolStripMenuItem, this->saveToolStripMenuItem, this->exitToolStripMenuItem, this->closeCurrent_Button,
+					this->openFile_Button, this->saveAsToolStripMenuItem, this->saveToolStripMenuItem, this->importButton, this->closeCurrent_Button,
 					this->exit_Button
 			});
 			this->fileToolStripMenuItem->Name = L"fileToolStripMenuItem";
@@ -194,13 +200,13 @@ namespace UQMPalEd {
 			// 
 			this->newToolStripMenuItem->Enabled = false;
 			this->newToolStripMenuItem->Name = L"newToolStripMenuItem";
-			this->newToolStripMenuItem->Size = System::Drawing::Size(139, 22);
+			this->newToolStripMenuItem->Size = System::Drawing::Size(180, 22);
 			this->newToolStripMenuItem->Text = L"New";
 			// 
 			// openFile_Button
 			// 
 			this->openFile_Button->Name = L"openFile_Button";
-			this->openFile_Button->Size = System::Drawing::Size(139, 22);
+			this->openFile_Button->Size = System::Drawing::Size(180, 22);
 			this->openFile_Button->Text = L"Open";
 			this->openFile_Button->Click += gcnew System::EventHandler(this, &MainForm::openFile_Button_Click);
 			// 
@@ -208,42 +214,36 @@ namespace UQMPalEd {
 			// 
 			this->saveAsToolStripMenuItem->Enabled = false;
 			this->saveAsToolStripMenuItem->Name = L"saveAsToolStripMenuItem";
-			this->saveAsToolStripMenuItem->Size = System::Drawing::Size(139, 22);
+			this->saveAsToolStripMenuItem->Size = System::Drawing::Size(180, 22);
 			this->saveAsToolStripMenuItem->Text = L"Save As";
 			// 
 			// saveToolStripMenuItem
 			// 
 			this->saveToolStripMenuItem->Enabled = false;
 			this->saveToolStripMenuItem->Name = L"saveToolStripMenuItem";
-			this->saveToolStripMenuItem->Size = System::Drawing::Size(139, 22);
+			this->saveToolStripMenuItem->Size = System::Drawing::Size(180, 22);
 			this->saveToolStripMenuItem->Text = L"Save";
 			// 
-			// exitToolStripMenuItem
+			// importButton
 			// 
-			this->exitToolStripMenuItem->DropDownItems->AddRange(gcnew cli::array< System::Windows::Forms::ToolStripItem^  >(1) { this->pSToolStripMenuItem });
-			this->exitToolStripMenuItem->Name = L"exitToolStripMenuItem";
-			this->exitToolStripMenuItem->Size = System::Drawing::Size(139, 22);
-			this->exitToolStripMenuItem->Text = L"Import from";
-			// 
-			// pSToolStripMenuItem
-			// 
-			this->pSToolStripMenuItem->Enabled = false;
-			this->pSToolStripMenuItem->Name = L"pSToolStripMenuItem";
-			this->pSToolStripMenuItem->Size = System::Drawing::Size(87, 22);
-			this->pSToolStripMenuItem->Text = L"PS";
+			this->importButton->Enabled = false;
+			this->importButton->Name = L"importButton";
+			this->importButton->Size = System::Drawing::Size(180, 22);
+			this->importButton->Text = L"Import";
+			this->importButton->Click += gcnew System::EventHandler(this, &MainForm::importButton_Click);
 			// 
 			// closeCurrent_Button
 			// 
 			this->closeCurrent_Button->Enabled = false;
 			this->closeCurrent_Button->Name = L"closeCurrent_Button";
-			this->closeCurrent_Button->Size = System::Drawing::Size(139, 22);
+			this->closeCurrent_Button->Size = System::Drawing::Size(180, 22);
 			this->closeCurrent_Button->Text = L"Close";
 			this->closeCurrent_Button->Click += gcnew System::EventHandler(this, &MainForm::closeCurrent_Button_Click);
 			// 
 			// exit_Button
 			// 
 			this->exit_Button->Name = L"exit_Button";
-			this->exit_Button->Size = System::Drawing::Size(139, 22);
+			this->exit_Button->Size = System::Drawing::Size(180, 22);
 			this->exit_Button->Text = L"Exit";
 			this->exit_Button->Click += gcnew System::EventHandler(this, &MainForm::exit_Button_Click);
 			// 
@@ -351,7 +351,7 @@ namespace UQMPalEd {
 			// 
 			this->viewFilter->AutoSize = true;
 			this->viewFilter->Enabled = false;
-			this->viewFilter->Location = System::Drawing::Point(162, 73);
+			this->viewFilter->Location = System::Drawing::Point(162, 72);
 			this->viewFilter->Name = L"viewFilter";
 			this->viewFilter->Size = System::Drawing::Size(156, 17);
 			this->viewFilter->TabIndex = 10;
@@ -365,7 +365,7 @@ namespace UQMPalEd {
 			this->CiS_value->AutoSize = true;
 			this->CiS_value->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 8.25F, System::Drawing::FontStyle::Bold, System::Drawing::GraphicsUnit::Point,
 				static_cast<System::Byte>(204)));
-			this->CiS_value->Location = System::Drawing::Point(283, 56);
+			this->CiS_value->Location = System::Drawing::Point(263, 56);
 			this->CiS_value->Name = L"CiS_value";
 			this->CiS_value->Size = System::Drawing::Size(14, 13);
 			this->CiS_value->TabIndex = 14;
@@ -376,16 +376,16 @@ namespace UQMPalEd {
 			this->CiS_title->AutoSize = true;
 			this->CiS_title->Location = System::Drawing::Point(159, 56);
 			this->CiS_title->Name = L"CiS_title";
-			this->CiS_title->Size = System::Drawing::Size(129, 13);
+			this->CiS_title->Size = System::Drawing::Size(108, 13);
 			this->CiS_title->TabIndex = 13;
-			this->CiS_title->Text = L"Colors in current segment:";
+			this->CiS_title->Text = L"Total segment colors:";
 			// 
 			// CiT_value
 			// 
 			this->CiT_value->AutoSize = true;
 			this->CiT_value->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 8.25F, System::Drawing::FontStyle::Bold, System::Drawing::GraphicsUnit::Point,
 				static_cast<System::Byte>(204)));
-			this->CiT_value->Location = System::Drawing::Point(122, 56);
+			this->CiT_value->Location = System::Drawing::Point(102, 56);
 			this->CiT_value->Name = L"CiT_value";
 			this->CiT_value->Size = System::Drawing::Size(14, 13);
 			this->CiT_value->TabIndex = 12;
@@ -396,9 +396,9 @@ namespace UQMPalEd {
 			this->CiT_title->AutoSize = true;
 			this->CiT_title->Location = System::Drawing::Point(6, 56);
 			this->CiT_title->Name = L"CiT_title";
-			this->CiT_title->Size = System::Drawing::Size(121, 13);
+			this->CiT_title->Size = System::Drawing::Size(100, 13);
 			this->CiT_title->TabIndex = 11;
-			this->CiT_title->Text = L"Colors in current palette:";
+			this->CiT_title->Text = L"Total palette colors:";
 			// 
 			// segmentSuffix
 			// 
@@ -536,6 +536,10 @@ namespace UQMPalEd {
 			this->brushColorView->TabIndex = 0;
 			this->brushColorView->TabStop = false;
 			// 
+			// importFileDialog
+			// 
+			this->importFileDialog->FileName = L"openFileDialog1";
+			// 
 			// MainForm
 			// 
 			this->AutoScaleDimensions = System::Drawing::SizeF(6, 13);
@@ -556,7 +560,7 @@ namespace UQMPalEd {
 			this->MinimumSize = System::Drawing::Size(640, 500);
 			this->Name = L"MainForm";
 			this->StartPosition = System::Windows::Forms::FormStartPosition::CenterScreen;
-			this->Text = L"Ur-Quan Masters Palette Editor v0.0.8";
+			this->Text = L"Ur-Quan Masters Palette Editor v0.0.9";
 			this->menuStrip->ResumeLayout(false);
 			this->menuStrip->PerformLayout();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->tableViewer))->EndInit();
@@ -579,5 +583,6 @@ namespace UQMPalEd {
 	private: System::Void tableViewer_MouseMove(System::Object^ sender, System::Windows::Forms::MouseEventArgs^ e);
 	private: System::Void tableViewer_MouseEnter(System::Object^ sender, System::EventArgs^ e);
 	private: System::Void tableViewer_MouseLeave(System::Object^ sender, System::EventArgs^ e);
+	private: System::Void importButton_Click(System::Object^ sender, System::EventArgs^ e);
 };
 }

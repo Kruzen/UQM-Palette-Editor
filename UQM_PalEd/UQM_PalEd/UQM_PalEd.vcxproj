@@ -124,11 +124,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="ColorTable.cpp" />
     <ClCompile Include="FileManager.cpp" />
     <ClCompile Include="MainForm.cpp" />
     <ClCompile Include="Palette.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ColorTable.h" />
     <ClInclude Include="constdef.h" />
     <ClInclude Include="FileManager.h" />
     <ClInclude Include="MainForm.h">

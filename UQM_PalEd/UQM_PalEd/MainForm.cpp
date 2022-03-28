@@ -1,4 +1,4 @@
-// Ur-Quan Masters Palette Editor v0.0.5
+// Ur-Quan Masters Palette Editor v0.0.9
 
 /*
  *	This program is created as a tool to view/modify/create
@@ -21,10 +21,12 @@
 #include <WinBase.h>
 #include "MainForm.h"
 #include "resource.h"
+#include "constdef.h"
 
 using namespace System;
 using namespace System::Windows::Forms;
 using namespace System::Drawing;
+using namespace FManager;
 
 
 [STAThreadAttribute]
@@ -40,16 +42,16 @@ UQMPalEd::MainForm::MainForm(void)
 {// Constructor	
 	InitializeComponent();
 
-	openFileDialog->Filter = "UQM color table (*.ct)|*.ct";
+	openFileDialog->Filter = "UQM color table (*.ct)|*.ct|Microsoft© palette(*.pal)|*.pal|Adobe© color table (*.act)|*.act";
 	openFileDialog->FileName = "";
+	importFileDialog->Filter = "Adobe© color table (*.act)|*.act|Microsoft© palette(*.pal)|*.pal";
+	importFileDialog->FileName = "";
 
 	if (getImageFromRes(IDB_PNG1))// get background from resources
 		background = gcnew Bitmap(getImageFromRes(IDB_PNG1));
 	else// if not found - form a white square
 		background = gcnew Bitmap(320, 320);
 	tableViewer->Image = background;
-
-	//h = gcnew File_Handler();
 }
 
 void UQMPalEd::MainForm::invokeMessageBox(String^ s, bool err)
@@ -112,8 +114,11 @@ void UQMPalEd::MainForm::fillDropDownTables(int numTables)
 void UQMPalEd::MainForm::clearTableView(void)
 {// back to default image	
 	tableViewer->Image = background;
-	Array::Clear(currView, 0, currView->Length);
-	delete currView;
+	if (currView)
+	{
+		Array::Clear(currView, 0, currView->Length);
+		delete currView;
+	}
 }
 
 void UQMPalEd::MainForm::closeCurrent(void)
@@ -127,6 +132,7 @@ void UQMPalEd::MainForm::closeCurrent(void)
 	segmentChooser->Items->Clear();
 	segmentChooser->Enabled = false;
 	closeCurrent_Button->Enabled = false;
+	importButton->Enabled = false;
 	openFileDialog->FileName = "";
 	tableSuffix->Text = "of 0";
 	segmentSuffix->Text = "of 0";
@@ -137,6 +143,11 @@ void UQMPalEd::MainForm::closeCurrent(void)
 	viewFilter->Visible = false;
 	viewFilter->Checked = false;
 	this->toggleBrushUI(false);
+	if (ct)
+	{
+		ct->~ColorTable();
+		delete ct;
+	}
 }
 
 void UQMPalEd::MainForm::toggleFilter(bool toggle)
@@ -192,6 +203,7 @@ Image^ UQMPalEd::MainForm::getImageFromRes(long resource_ID)
 System::Void UQMPalEd::MainForm::openFile_Button_Click(System::Object^ sender, System::EventArgs^ e)
 {// file opening routine
 	String^ fname;
+	FileManager^ fm;
 
 	openFileDialog->ShowDialog();
 	fname = openFileDialog->FileName;
@@ -201,14 +213,11 @@ System::Void UQMPalEd::MainForm::openFile_Button_Click(System::Object^ sender, S
 
 	try
 	{
-		//h->checkFileFormat(fname);
-		//h->extractContent();
+		fm = gcnew FileManager();
+		fm->checkFileFormat(fname);
+		ct = gcnew ColorTable(fm->getPaletteCount(), fm->getPaletteLengths());
+		ct->distrubutePalettes(fm->extractColorBytes(), fm->getFileType());
 	}
-	/*catch (CTException^ e)
-	{
-		invokeMessageBox(e->ToString(), e->IsWarning());
-		return;
-	}*/
 	catch (Exception^ e)
 	{
 		invokeMessageBox(e->ToString(), true);
@@ -219,19 +228,23 @@ System::Void UQMPalEd::MainForm::openFile_Button_Click(System::Object^ sender, S
 	t_displayed = 0;
 	s_displayed = 0;
 	mouseOver_index = MAXDWORD;
-	//fillTableView(h->getTable());
+	fillTableView(ct->getColorPalette(t_displayed, s_displayed));
 
-	/*/fillDropDownTables(h->getNumTables());
-	fillDropDownSegs(h->getNumSegs(0));
-	toggleFilter(h->getTablePlanetCond(0));*/
+	fillDropDownTables(ct->getPaletteCount());
+	fillDropDownSegs(ct->getSegCount(0));
+	toggleFilter(ct->getPlanetCond(0));
 
-//	tableSuffix->Text = "of " + h->getNumTables();
-//	segmentSuffix->Text = "of " + h->getNumSegs(0);
-//	CiT_value->Text = h->getNumColors(0).ToString();
-//	CiS_value->Text = h->getNumSegColors(0, 0).ToString();
-//	controlPanel->Text = "Control Panel - " + h->getFileName();
+	tableSuffix->Text = "of " + ct->getPaletteCount();
+	segmentSuffix->Text = "of " + ct->getSegCount(t_displayed);
+	CiT_value->Text = ct->getPaletteColorCount(t_displayed).ToString();
+	CiS_value->Text = ct->getSegmentColorCount(t_displayed, s_displayed).ToString();
+	controlPanel->Text = "Control Panel - " + fm->getFileNameFromPath();
 
 	closeCurrent_Button->Enabled = true;// unlock "Close" button
+	importButton->Enabled = true;
+
+	fm->~FileManager();
+	delete fm;
 }
 
 System::Void UQMPalEd::MainForm::closeCurrent_Button_Click(System::Object^ sender, System::EventArgs^ e)
@@ -244,11 +257,11 @@ System::Void UQMPalEd::MainForm::tableChooser_SelectedIndexChanged(System::Objec
 	if (tableChooser->SelectedIndex != t_displayed)
 	{
 		t_displayed = tableChooser->SelectedIndex;
-	//	fillDropDownSegs(h->getNumSegs(t_displayed));
-		//fillTableView(h->getTable(t_displayed, 0, viewFilter->Checked));
-	//	segmentSuffix->Text = "of " + h->getNumSegs(t_displayed);
-	//	CiT_value->Text = h->getNumColors(t_displayed).ToString();
-	//	CiS_value->Text = h->getNumSegColors(t_displayed, 0).ToString();
+		fillDropDownSegs(ct->getSegCount(t_displayed));
+		fillTableView(ct->getColorPalette(t_displayed, 0, viewFilter->Checked));
+		segmentSuffix->Text = "of " + ct->getSegCount(t_displayed);
+		CiT_value->Text = ct->getPaletteColorCount(t_displayed).ToString();
+		CiS_value->Text = ct->getSegmentColorCount(t_displayed, 0).ToString();
 	}
 }
 
@@ -263,20 +276,20 @@ System::Void UQMPalEd::MainForm::segmentChooser_SelectedIndexChanged(System::Obj
 	{
 		s_displayed = segmentChooser->SelectedIndex;
 		//no need to pass viewFilter check here, planet.ct(s) always have 1 segment per table
-		//fillTableView(h->getTable(t_displayed, s_displayed));
-	//	CiS_value->Text = h->getNumSegColors(t_displayed, s_displayed).ToString();
+		fillTableView(ct->getColorPalette(t_displayed, s_displayed));
+		CiS_value->Text = ct->getSegmentColorCount(t_displayed, s_displayed).ToString();
 	}
 }
 
 System::Void UQMPalEd::MainForm::viewFilter_CheckedChanged(System::Object^ sender, System::EventArgs^ e)
 {
-	/*if (viewFilter->Enabled)
-		fillTableView(h->getTable(t_displayed, s_displayed, viewFilter->Checked));*/
+	if (viewFilter->Enabled)
+		fillTableView(ct->getColorPalette(t_displayed, s_displayed, viewFilter->Checked));
 }
 
 System::Void UQMPalEd::MainForm::tableViewer_MouseMove(System::Object^ sender, System::Windows::Forms::MouseEventArgs^ e)
 {
-	/*int x_index = MIN((Cursor->Position.X - tableViewer->Location.X - this->Location.X - 7) / 20, 15);
+	int x_index = MIN((Cursor->Position.X - tableViewer->Location.X - this->Location.X - 7) / 20, 15);
 	int y_index = MIN((Cursor->Position.Y - tableViewer->Location.Y - this->Location.Y - 30) / 20, 15);
 	int n_index = y_index * 16 + x_index;
 
@@ -306,7 +319,7 @@ System::Void UQMPalEd::MainForm::tableViewer_MouseMove(System::Object^ sender, S
 		}
 		else
 			this->toggleBrushUI(false);
-	}*/
+	}
 }
 
 System::Void UQMPalEd::MainForm::tableViewer_MouseEnter(System::Object^ sender, System::EventArgs^ e)
@@ -319,4 +332,31 @@ System::Void UQMPalEd::MainForm::tableViewer_MouseEnter(System::Object^ sender, 
 System::Void UQMPalEd::MainForm::tableViewer_MouseLeave(System::Object^ sender, System::EventArgs^ e)
 {
 	this->toggleBrushUI(false);
+}
+
+System::Void UQMPalEd::MainForm::importButton_Click(System::Object^ sender, System::EventArgs^ e)
+{
+	String^ fname;
+	FileManager^ fm;
+
+	importFileDialog->ShowDialog();
+	fname = importFileDialog->FileName;
+
+	if (fname == "")
+		return;
+
+	try
+	{
+		fm = gcnew FileManager();
+		fm->checkFileFormat(fname);
+		fillTableView(ct->bytesToColors(fm->extractColorBytes(), fm->getFileType()));
+	}
+	catch (Exception^ e)
+	{
+		invokeMessageBox(e->ToString(), true);
+		return;
+	}
+
+	fm->~FileManager();
+	delete fm;
 }

@@ -14,14 +14,13 @@
  *	Created by Kruzen. 2022
  */
 
-// .ct file manager header
+// file manager header for .ct, .pal, .act(TODO)
 #include <fstream>
-
-#pragma once
 
 using namespace System;
 using namespace System::IO;
 
+#pragma once
 namespace FManager
 {
 	ref class FileManager
@@ -30,30 +29,30 @@ namespace FManager
 		String^ fileName;				// name of current file
 		int fileType;					// file ID (see enum in constdef.h)
 		int paletteCount;				// number of palettes in opened file;
-		array<int>^ paletteLengths;		// array of lengths of ebery palette
-		array<Byte>^ cBytes;			// colors represented in bytes (extracted from file)
+		array<int>^ paletteLengths;		// array of lengths of every palette
 	private:
 		void reInitValues(String^ fName, int p_count, array<int>^ p_lengths);
+		unsigned int getFileExtensionCode(String^ fName);
 		void checkCT(BinaryReader^ br, String^ fName);
 		void checkRIFF(BinaryReader^ br, String^ fName);
+		void checkACT(BinaryReader^ br, String^ fName);
 	public:
 		FileManager(void);
-		FileManager(String^ filename, int fileType, int paletteCount, array<int>^ paletteLengths, array<Byte>^ cBytes);
+		FileManager(String^ filename, int fileType, int paletteCount, array<int>^ paletteLengths);
 		~FileManager(void);
 		void checkFileFormat(String^ fname);
-		void extractColorBytes(void);
+		array<Byte>^ extractColorBytes(void);
+		String^ getFileNameFromPath(void);
 	public:
 		String^ getFileName(void);
 		int getFileType(void);
 		int getPaletteCount(void);
 		array<int>^ getPaletteLengths(void);
-		array<Byte>^ getColorBytes(void);
 	public:
 		void setFileName(String^ fileName);
 		void setFileType(int type);
 		void setPaletteCount(int paletteCount);
 		void setPaletteLengths(array<int>^ paletteLengths);
-		void setColorBytes(array<Byte>^ cBytes);
 	protected:
 		!FileManager(void);
 	};

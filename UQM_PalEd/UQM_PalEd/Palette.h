@@ -31,10 +31,11 @@ namespace CPalette
 		unsigned int length;		// segment length
 		array<Color>^ colors;		// segment true colors
 		array<Color>^ p_colors;		// in-game colors for planets
-	private:
+	public:
 		void tableToPTable(void);
 	public:
 		Segment(void);
+		Segment(unsigned int length, array<Color>^ colors, bool isPlanet);
 		~Segment(void);
 	public:
 		int getSegLength(void);
@@ -59,10 +60,11 @@ namespace CPalette
 	private:
 		unsigned int numSegs;		// total number of segments in a palette
 		unsigned int numColors;		// total number of colors in a palette
-		bool isPlanet;				// true - only when number of tables = 3 and each is 386 bytes in length
-		array<Segment^>^ seg;
+		bool isPlanet;				// true - only when number of palettes = 3 and each is 386 bytes in length
+		array<Segment^>^ seg;		// Segments per palette
 	public:
 		Palette(void);
+		Palette(unsigned int numSegs, unsigned int numColors, bool isPlanet);
 		~Palette(void);
 	public:
 		int getSegLength(int index);
@@ -74,8 +76,8 @@ namespace CPalette
 		array<Color>^ returnSeg(int index);
 		array<Color>^ returnSeg(int index, bool isPlanet);
 	public:
-		void setNumSegs(int num);
-		void setNumColors(int num);		
+		void setNumSegs(int numSegs);
+		void setNumColors(int numColors);
 		void setPlanetCond(bool isPlanet);
 		void setSeg(int index, array<Color>^ c);		
 	protected:
