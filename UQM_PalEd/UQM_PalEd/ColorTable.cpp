@@ -36,13 +36,31 @@ CTable::ColorTable::ColorTable(int paletteCount, array<int>^ paletteLengths)
     this->palettes = gcnew array<Palette^>(this->paletteCount);
 }
 
-CTable::ColorTable::ColorTable(int paletteCount, array<int>^ paletteLengths, Color^ c)
+CTable::ColorTable::ColorTable(int paletteCount, array<int>^ paletteLengths, Color c)
 {// constructor - used in creating New table
     this->paletteCount = paletteCount;
-    this->paletteLengths = gcnew array<int>(paletteCount);
+    this->paletteLengths = gcnew array<int>(this->paletteCount);
     this->paletteLengths = paletteLengths;
     this->palettes = gcnew array<Palette^>(this->paletteCount);
-    // TODO: fill all colors with color c
+
+    bool isPlanet = false;
+    
+    if (this->paletteCount == 3)// condition for a planet.ct
+        isPlanet = (this->paletteLengths[0] == 386 && this->paletteLengths[1] == 386 && this->paletteLengths[2] == 386);
+
+    for (int i = 0; i < this->paletteCount; i++)// for every palette determine the amount of segments and then fill them
+    {// fill structures from selected file
+        int segs;
+
+        segs = (this->paletteLengths[i] - 2) / (MAX_BYTES_PER_SEGMENT);
+
+        if (segs < 1)
+            segs = 1;// one segment of less than 256 colors (i.e. planet table)
+        else
+            segs += (((this->paletteLengths[i] - 2) % (MAX_BYTES_PER_SEGMENT)) != 0);// +1 segment if it's <256 colors in length
+
+        palettes[i] = gcnew Palette(segs, (this->paletteLengths[i] - 2) / BYTES_PER_COLOR, isPlanet, c);
+    }
 }
 
 CTable::ColorTable::~ColorTable(void)
@@ -235,6 +253,25 @@ int CTable::ColorTable::getPaletteColorCount(int p_index)
 int CTable::ColorTable::getSegmentColorCount(int p_index, int s_index)
 {
     return palettes[p_index]->getSegLength(s_index);
+}
+
+array<Color>^ CTable::ColorTable::setPaletteSegment(int p_index, int s_index, array<Color>^ c)
+{
+    paletteLengths[p_index] -= palettes[p_index]->getSegLength(s_index) * BYTES_PER_COLOR;
+    palettes[p_index]->setNumColors(palettes[p_index]->getNumColors() - palettes[p_index]->getSegLength(s_index));
+    paletteLengths[p_index] += MIN(c->Length, MAX_COLORS_PER_TABLE) * BYTES_PER_COLOR;
+
+    if (paletteCount == 3)
+    {
+        bool isPlanet = (paletteLengths[0] == 386 && paletteLengths[1] == 386 && paletteLengths[2] == 386);;
+        palettes[0]->setPlanetCond(isPlanet);
+        palettes[1]->setPlanetCond(isPlanet);
+        palettes[2]->setPlanetCond(isPlanet);
+    }
+    palettes[p_index]->setSeg(s_index, c);
+    palettes[p_index]->setNumColors(palettes[p_index]->getNumColors() + palettes[p_index]->getSegLength(s_index));
+
+    return c;
 }
 
 CTable::ColorTable::!ColorTable(void)

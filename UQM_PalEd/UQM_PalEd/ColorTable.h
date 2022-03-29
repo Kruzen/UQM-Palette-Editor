@@ -34,7 +34,7 @@ namespace CTable
 	public:
 		ColorTable(void);
 		ColorTable(int paletteCount, array<int>^ paletteLengths);
-		ColorTable(int paletteCount, array<int>^ paletteLengths, Color^ c);
+		ColorTable(int paletteCount, array<int>^ paletteLengths, Color c);
 		~ColorTable(void);
 	public:
 		array<Byte>^ getsubArray(unsigned int start_index, unsigned int end_index, array<Byte>^ bytes);
@@ -48,6 +48,7 @@ namespace CTable
 		bool getPlanetCond(int p_index);
 		int getPaletteColorCount(int p_index);
 		int getSegmentColorCount(int p_index, int s_index);
+		array<Color>^ setPaletteSegment(int p_index, int s_index, array<Color>^ c);
 	protected:
 		!ColorTable(void);
 	};

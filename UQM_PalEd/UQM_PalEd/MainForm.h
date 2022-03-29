@@ -56,6 +56,8 @@ namespace UQMPalEd {
 
 	public:
 		ColorTable^ ct;
+		String^ fileName;
+		bool modified;
 	private: System::Windows::Forms::OpenFileDialog^ importFileDialog;
 	public:
 		Bitmap^ background;
@@ -198,10 +200,10 @@ namespace UQMPalEd {
 			// 
 			// newToolStripMenuItem
 			// 
-			this->newToolStripMenuItem->Enabled = false;
 			this->newToolStripMenuItem->Name = L"newToolStripMenuItem";
 			this->newToolStripMenuItem->Size = System::Drawing::Size(180, 22);
 			this->newToolStripMenuItem->Text = L"New";
+			this->newToolStripMenuItem->Click += gcnew System::EventHandler(this, &MainForm::newToolStripMenuItem_Click);
 			// 
 			// openFile_Button
 			// 
@@ -229,7 +231,7 @@ namespace UQMPalEd {
 			this->importButton->Enabled = false;
 			this->importButton->Name = L"importButton";
 			this->importButton->Size = System::Drawing::Size(180, 22);
-			this->importButton->Text = L"Import";
+			this->importButton->Text = L"Import Segment";
 			this->importButton->Click += gcnew System::EventHandler(this, &MainForm::importButton_Click);
 			// 
 			// closeCurrent_Button
@@ -584,5 +586,6 @@ namespace UQMPalEd {
 	private: System::Void tableViewer_MouseEnter(System::Object^ sender, System::EventArgs^ e);
 	private: System::Void tableViewer_MouseLeave(System::Object^ sender, System::EventArgs^ e);
 	private: System::Void importButton_Click(System::Object^ sender, System::EventArgs^ e);
+	private: System::Void newToolStripMenuItem_Click(System::Object^ sender, System::EventArgs^ e);
 };
 }

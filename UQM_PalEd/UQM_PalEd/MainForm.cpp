@@ -138,6 +138,8 @@ void UQMPalEd::MainForm::closeCurrent(void)
 	segmentSuffix->Text = "of 0";
 	CiT_value->Text = "0";
 	CiS_value->Text = "0";
+	fileName = "";
+	modified = false;
 	controlPanel->Text = "Control Panel";	
 	viewFilter->Enabled = false;
 	viewFilter->Visible = false;
@@ -205,6 +207,7 @@ System::Void UQMPalEd::MainForm::openFile_Button_Click(System::Object^ sender, S
 	String^ fname;
 	FileManager^ fm;
 
+	openFileDialog->FileName = "";
 	openFileDialog->ShowDialog();
 	fname = openFileDialog->FileName;
 
@@ -217,6 +220,7 @@ System::Void UQMPalEd::MainForm::openFile_Button_Click(System::Object^ sender, S
 		fm->checkFileFormat(fname);
 		ct = gcnew ColorTable(fm->getPaletteCount(), fm->getPaletteLengths());
 		ct->distrubutePalettes(fm->extractColorBytes(), fm->getFileType());
+		fileName = fm->getFileName();
 	}
 	catch (Exception^ e)
 	{
@@ -238,7 +242,7 @@ System::Void UQMPalEd::MainForm::openFile_Button_Click(System::Object^ sender, S
 	segmentSuffix->Text = "of " + ct->getSegCount(t_displayed);
 	CiT_value->Text = ct->getPaletteColorCount(t_displayed).ToString();
 	CiS_value->Text = ct->getSegmentColorCount(t_displayed, s_displayed).ToString();
-	controlPanel->Text = "Control Panel - " + fm->getFileNameFromPath();
+	controlPanel->Text = "Control Panel - " + Path::GetFileName(fileName);
 
 	closeCurrent_Button->Enabled = true;// unlock "Close" button
 	importButton->Enabled = true;
@@ -336,9 +340,13 @@ System::Void UQMPalEd::MainForm::tableViewer_MouseLeave(System::Object^ sender, 
 
 System::Void UQMPalEd::MainForm::importButton_Click(System::Object^ sender, System::EventArgs^ e)
 {
+	if (!ct)
+		return;
+
 	String^ fname;
 	FileManager^ fm;
 
+	importFileDialog->FileName = "";
 	importFileDialog->ShowDialog();
 	fname = importFileDialog->FileName;
 
@@ -349,14 +357,44 @@ System::Void UQMPalEd::MainForm::importButton_Click(System::Object^ sender, Syst
 	{
 		fm = gcnew FileManager();
 		fm->checkFileFormat(fname);
-		fillTableView(ct->bytesToColors(fm->extractColorBytes(), fm->getFileType()));
+		fillTableView(ct->setPaletteSegment(t_displayed, s_displayed, ct->bytesToColors(fm->extractColorBytes(), fm->getFileType())));
+		CiT_value->Text = ct->getPaletteColorCount(t_displayed).ToString();
+		CiS_value->Text = ct->getSegmentColorCount(t_displayed, s_displayed).ToString();
+		toggleFilter(ct->getPlanetCond(0));
 	}
 	catch (Exception^ e)
 	{
 		invokeMessageBox(e->ToString(), true);
 		return;
 	}
+	modified = true;
+	controlPanel->Text += "*";
 
 	fm->~FileManager();
 	delete fm;
+}
+
+System::Void UQMPalEd::MainForm::newToolStripMenuItem_Click(System::Object^ sender, System::EventArgs^ e)
+{
+	if (ct)
+	{
+		ct->~ColorTable();
+		delete ct;
+	}
+
+	ct = gcnew ColorTable(2, gcnew array<int>{ 779, 770 }, Color::Coral);
+
+	fillTableView(ct->getColorPalette(0, 0));
+	fillDropDownTables(ct->getPaletteCount());
+	fillDropDownSegs(ct->getSegCount(0));
+	toggleFilter(ct->getPlanetCond(0));
+
+	tableSuffix->Text = "of " + ct->getPaletteCount();
+	segmentSuffix->Text = "of " + ct->getSegCount(t_displayed);
+	CiT_value->Text = ct->getPaletteColorCount(t_displayed).ToString();
+	CiS_value->Text = ct->getSegmentColorCount(t_displayed, s_displayed).ToString();
+	controlPanel->Text = "Control Panel - Untitled.ct";
+
+	closeCurrent_Button->Enabled = true;// unlock "Close" button
+	importButton->Enabled = true;// unlock "Import" button
 }
