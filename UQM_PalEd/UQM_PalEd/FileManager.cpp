@@ -51,8 +51,9 @@ unsigned int FManager::FileManager::getFileExtensionCode(String^ fName)
     return BitConverter::ToInt32(System::Text::Encoding::ASCII->GetBytes(extention), 0);
 }
 
-void FManager::FileManager::checkCT(BinaryReader^ br, String^ fName)
+void FManager::FileManager::checkCT(String^ fName)
 {// check format of .ct file
+    BinaryReader^ br = gcnew BinaryReader(gcnew FileStream(fName, FileMode::Open));
     long pos;
     unsigned int p_count;
     array<int>^ p_lengths;
@@ -113,6 +114,9 @@ void FManager::FileManager::checkCT(BinaryReader^ br, String^ fName)
         for (int i = 0; i < p_count; i++)
         {
             controlSum += p_lengths[i];
+
+            p_lengths[i] -= 2;
+            p_lengths[i] /= BYTES_PER_COLOR;// leave only colors
         }
 
         if (br->BaseStream->Length != controlSum)
@@ -122,12 +126,14 @@ void FManager::FileManager::checkCT(BinaryReader^ br, String^ fName)
             throw gcnew FormatException("File length is incorrect! Control sum: " + controlSum + ". Stream length: " + pos);
         }
     }
+    br->Close();
 
     this->reInitValues(fName, p_count, p_lengths);// values verified - accept them
 }
 
-void FManager::FileManager::checkRIFF(BinaryReader^ br, String^ fName)
+void FManager::FileManager::checkRIFF(String^ fName)
 {// check format of .pal file
+    BinaryReader^ br = gcnew BinaryReader(gcnew FileStream(fName, FileMode::Open));
     int pos;
     int p_count = 1;
     array<int>^ p_lengths = gcnew array<int>(p_count);
@@ -137,7 +143,7 @@ void FManager::FileManager::checkRIFF(BinaryReader^ br, String^ fName)
     {
         pos = br->BaseStream->Position;
         br->Close();
-        throw gcnew FormatException("Wrong file length! Byte: " + pos);
+        throw gcnew FormatException("Wrong file format! Byte: " + pos);
     }
 
     // Check length of file
@@ -181,7 +187,7 @@ void FManager::FileManager::checkRIFF(BinaryReader^ br, String^ fName)
     }
 
     // Check length
-    p_lengths[0] = br->ReadUInt16() * BYTES_PER_COLOR_RIFF;
+    p_lengths[0] = br->ReadUInt16();
     if (p_lengths[0] == 0)
     {
         pos = br->BaseStream->Position;
@@ -189,20 +195,26 @@ void FManager::FileManager::checkRIFF(BinaryReader^ br, String^ fName)
         throw gcnew FormatException("Wrong palette length! Byte: " + pos);
     }
 
+    br->Close();
+
     this->reInitValues(fName, p_count, p_lengths);// values verified - accept them
 }
-void FManager::FileManager::checkACT(BinaryReader^ br, String^ fName)
-{
-    //throw gcnew FormatException("Length " + br->BaseStream->Length);
+void FManager::FileManager::checkACT(String^ fName)
+{// chack ACT file
+    BinaryReader^ br = gcnew BinaryReader(gcnew FileStream(fName, FileMode::Open));
     if (br->BaseStream->Length == 768)
-        this->reInitValues(fName, 1, gcnew array<int>{ MAX_COLORS_PER_TABLE * BYTES_PER_COLOR });
+        this->reInitValues(fName, 1, gcnew array<int>{ MAX_COLORS_PER_TABLE});
     else if (br->BaseStream->Length == 772)
     {
         br->BaseStream->Position = 769;
-        this->reInitValues(fName, 1, gcnew array<int>{br->ReadByte() * BYTES_PER_COLOR});
+        this->reInitValues(fName, 1, gcnew array<int>{br->ReadByte()});
     }
     else
+    {
+        br->Close();
         throw gcnew FormatException("Wrong file length! Adobe format");
+    }
+    br->Close();
 }
 /*
  *
@@ -248,36 +260,29 @@ FManager::FileManager::~FileManager(void)
 
 void FManager::FileManager::checkFileFormat(String^ fname)
 {// checking file format by their inner structure
-    BinaryReader^ br = gcnew BinaryReader(gcnew FileStream(fname, FileMode::Open));
-
     switch (this->getFileExtensionCode(fname))
     {
         case CT_SIGNATURE:
         {
             fileType = CT_FILE;
-            this->checkCT(br, fname);
+            this->checkCT(fname);
             break;
         }
         case PAL_SIGNATURE:
         {
             fileType = RIFF_FILE;
-            this->checkRIFF(br, fname);
+            this->checkRIFF(fname);
             break;
         }
         case ACT_SIGNATURE:
         {
             fileType = ACT_FILE;
-            this->checkACT(br, fname);
+            this->checkACT(fname);
             break;
         }
         default:
-        {
-            br->Close();
             throw gcnew FormatException("Unknonw file format!");
-        }
-    }
-   
-    br->Close();
+    }   
 }
 
 array<Byte>^ FManager::FileManager::extractColorBytes(void)
@@ -292,19 +297,48 @@ array<Byte>^ FManager::FileManager::extractColorBytes(void)
         case CT_FILE:
         {
             br->BaseStream->Position = CT_TECH_BYTE_LENGTH + (NUM_BYTES_PER_TABLE_LENGTH * paletteCount);
-            length = br->BaseStream->Length - br->BaseStream->Position;
+            length = br->BaseStream->Length - br->BaseStream->Position - (2 * paletteCount);
+
+            int k = 0;
+            cBytes = gcnew array<Byte>(length);
+
+            for (int i = 0; i < paletteCount; i++)
+            {
+                br->BaseStream->Position += 2;
+                for (int j = 0; j < paletteLengths[i] * BYTES_PER_COLOR; j++, k++)
+                    cBytes[k] = br->ReadByte();
+            }
             break;
         }
         case RIFF_FILE:
         {
             br->BaseStream->Position = RIFF_TECH_BYTE_LENGTH;
-            length = br->BaseStream->Length - br->BaseStream->Position;
+            length = paletteLengths[0] * BYTES_PER_COLOR;
+
+            cBytes = gcnew array<Byte>(length);
+
+            for (int i = 0; i < paletteLengths[0]; i++)
+            {
+                cBytes[i * BYTES_PER_COLOR + RED] = br->ReadByte();
+                cBytes[i * BYTES_PER_COLOR + GREEN] = br->ReadByte();
+                cBytes[i * BYTES_PER_COLOR + BLUE] = br->ReadByte();
+                br->BaseStream->Position++;
+            }
+
+            br->Close();
             break;
         }
         case ACT_FILE:
         {
             br->BaseStream->Position = 0;
-            length = paletteLengths[0];
+            length = paletteLengths[0] * BYTES_PER_COLOR;           
+
+            cBytes = gcnew array<Byte>(length);
+
+            for (int i = 0; i < length; i++)
+                cBytes[i] = br->ReadByte();
+
+            br->Close();
             break;
         }
         default:
@@ -313,14 +347,7 @@ array<Byte>^ FManager::FileManager::extractColorBytes(void)
             throw gcnew FormatException("Wrong file format!");
             break;
         }
-    }   
-
-    cBytes = gcnew array<Byte>(length);
-
-    for (int i = 0; i < length; i++)
-        cBytes[i] = br->ReadByte();
-
-    br->Close();
+    }
 
     return cBytes;
 }

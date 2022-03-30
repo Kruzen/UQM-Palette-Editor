@@ -33,9 +33,9 @@ namespace FManager
 	private:
 		void reInitValues(String^ fName, int p_count, array<int>^ p_lengths);
 		unsigned int getFileExtensionCode(String^ fName);
-		void checkCT(BinaryReader^ br, String^ fName);
-		void checkRIFF(BinaryReader^ br, String^ fName);
-		void checkACT(BinaryReader^ br, String^ fName);
+		void checkCT(String^ fName);
+		void checkRIFF(String^ fName);
+		void checkACT(String^ fName);
 	public:
 		FileManager(void);
 		FileManager(String^ filename, int fileType, int paletteCount, array<int>^ paletteLengths);

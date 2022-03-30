@@ -60,13 +60,13 @@ CPalette::Segment::Segment(unsigned int length, array<Color>^ colors, bool isPla
 		this->tableToPTable();
 }
 
-CPalette::Segment::Segment(unsigned int length, bool isPlanet, Color c)
+CPalette::Segment::Segment(unsigned int length, bool isPlanet)
 {
 	this->length = length;
 	this->colors = gcnew array<Color>(this->length);
 
 	for (int i = 0; i < this->length; i++)
-		this->colors[i] = c;
+		this->colors[i] = Color::FromArgb(127 * (i % 3), 42 * (i % 3), 27 * (i % 3));
 
 	if (isPlanet)
 		this->tableToPTable();
@@ -144,13 +144,6 @@ CPalette::Segment::!Segment(void)
 }
 
 
-
-
-
-
-
-
-
 												/* Palette */
 /*
  *
@@ -177,7 +170,7 @@ CPalette::Palette::Palette(unsigned int numSegs, unsigned int numColors, bool is
 		this->seg[i] = gcnew Segment();
 }
 
-CPalette::Palette::Palette(unsigned int numSegs, unsigned int numColors, bool isPlanet, Color c)
+CPalette::Palette::Palette(unsigned int numSegs, unsigned int numColors, bool isPlanet, bool c)
 {
 	this->numSegs = numSegs;
 	this->numColors = numColors;
@@ -187,7 +180,7 @@ CPalette::Palette::Palette(unsigned int numSegs, unsigned int numColors, bool is
 	unsigned int remainColors = this->numColors;
 	for (int i = 0; i < this->numSegs; i++)
 	{
-		seg[i] = gcnew Segment(MIN(remainColors, MAX_COLORS_PER_TABLE), this->isPlanet, c);
+		seg[i] = gcnew Segment(MIN(remainColors, MAX_COLORS_PER_TABLE), this->isPlanet);
 		remainColors -= MAX_COLORS_PER_TABLE;
 	}
 }
@@ -229,6 +222,9 @@ bool CPalette::Palette::getPlanetCond(void)
 
 array<Color>^ CPalette::Palette::returnSeg(int index)
 {
+	if (index >= seg->Length)
+		return seg[seg->Length - 1]->returnArray();
+
 	return seg[index]->returnArray();
 }
 

@@ -89,6 +89,17 @@ void UQMPalEd::MainForm::fillTableView(array<Color>^ table)
 	tableViewer->Image = bmp;
 }
 
+void UQMPalEd::MainForm::fillDropDownSegs(int numSegs, int selected)
+{
+	segmentChooser->Items->Clear();
+	for (int i = 0; i < numSegs; i++)
+	{
+		segmentChooser->Items->Add(i + 1);
+	}
+	segmentChooser->Enabled = true;
+	segmentChooser->SelectedIndex = selected;
+}
+
 void UQMPalEd::MainForm::fillDropDownSegs(int numSegs)
 {// fill dropdown list with segments of current table
 	segmentChooser->Items->Clear();
@@ -172,6 +183,19 @@ void UQMPalEd::MainForm::toggleBrushUI(bool toggle)
 	B_CIndex->Visible = toggle;
 }
 
+void UQMPalEd::MainForm::writeCurrInfo(String^ fname)
+{
+	fillDropDownTables(ct->getPaletteCount());
+	fillDropDownSegs(ct->getSegCount(0));
+	toggleFilter(ct->getPlanetCond(0));
+
+	tableSuffix->Text = "of " + ct->getPaletteCount();
+	segmentSuffix->Text = "of " + ct->getSegCount(t_displayed);
+	CiT_value->Text = ct->getPaletteColorCount(t_displayed).ToString();
+	CiS_value->Text = ct->getSegmentColorCount(t_displayed, s_displayed).ToString();
+	controlPanel->Text = "Control Panel - " + fname;
+}
+
 Image^ UQMPalEd::MainForm::getImageFromRes(long resource_ID)
 {
 	// Function getImageFromRes
@@ -218,8 +242,8 @@ System::Void UQMPalEd::MainForm::openFile_Button_Click(System::Object^ sender, S
 	{
 		fm = gcnew FileManager();
 		fm->checkFileFormat(fname);
-		ct = gcnew ColorTable(fm->getPaletteCount(), fm->getPaletteLengths());
-		ct->distrubutePalettes(fm->extractColorBytes(), fm->getFileType());
+		ct = gcnew ColorTable(fm->getPaletteCount());
+		ct->distrubutePalettes(fm->extractColorBytes(), fm->getPaletteLengths());
 		fileName = fm->getFileName();
 	}
 	catch (Exception^ e)
@@ -234,15 +258,7 @@ System::Void UQMPalEd::MainForm::openFile_Button_Click(System::Object^ sender, S
 	mouseOver_index = MAXDWORD;
 	fillTableView(ct->getColorPalette(t_displayed, s_displayed));
 
-	fillDropDownTables(ct->getPaletteCount());
-	fillDropDownSegs(ct->getSegCount(0));
-	toggleFilter(ct->getPlanetCond(0));
-
-	tableSuffix->Text = "of " + ct->getPaletteCount();
-	segmentSuffix->Text = "of " + ct->getSegCount(t_displayed);
-	CiT_value->Text = ct->getPaletteColorCount(t_displayed).ToString();
-	CiS_value->Text = ct->getSegmentColorCount(t_displayed, s_displayed).ToString();
-	controlPanel->Text = "Control Panel - " + Path::GetFileName(fileName);
+	this->writeCurrInfo(Path::GetFileName(fileName));
 
 	closeCurrent_Button->Enabled = true;// unlock "Close" button
 	importButton->Enabled = true;
@@ -357,18 +373,25 @@ System::Void UQMPalEd::MainForm::importButton_Click(System::Object^ sender, Syst
 	{
 		fm = gcnew FileManager();
 		fm->checkFileFormat(fname);
-		fillTableView(ct->setPaletteSegment(t_displayed, s_displayed, ct->bytesToColors(fm->extractColorBytes(), fm->getFileType())));
+		fillTableView(ct->setPaletteSegment(t_displayed, s_displayed, ct->bytesToColors(fm->extractColorBytes())));
+
+		// update misc sruff
 		CiT_value->Text = ct->getPaletteColorCount(t_displayed).ToString();
 		CiS_value->Text = ct->getSegmentColorCount(t_displayed, s_displayed).ToString();
+		segmentSuffix->Text = "of " + ct->getSegCount(t_displayed);
 		toggleFilter(ct->getPlanetCond(0));
+		fillDropDownSegs(ct->getSegCount(t_displayed), s_displayed);
 	}
 	catch (Exception^ e)
 	{
 		invokeMessageBox(e->ToString(), true);
 		return;
 	}
-	modified = true;
-	controlPanel->Text += "*";
+	if (!modified)
+	{
+		modified = true;
+		controlPanel->Text += "*";
+	}
 
 	fm->~FileManager();
 	delete fm;
@@ -382,18 +405,11 @@ System::Void UQMPalEd::MainForm::newToolStripMenuItem_Click(System::Object^ send
 		delete ct;
 	}
 
-	ct = gcnew ColorTable(2, gcnew array<int>{ 779, 770 }, Color::Coral);
+	ct = gcnew ColorTable(2, gcnew array<int>{ 259, 256 });
 
 	fillTableView(ct->getColorPalette(0, 0));
-	fillDropDownTables(ct->getPaletteCount());
-	fillDropDownSegs(ct->getSegCount(0));
-	toggleFilter(ct->getPlanetCond(0));
 
-	tableSuffix->Text = "of " + ct->getPaletteCount();
-	segmentSuffix->Text = "of " + ct->getSegCount(t_displayed);
-	CiT_value->Text = ct->getPaletteColorCount(t_displayed).ToString();
-	CiS_value->Text = ct->getSegmentColorCount(t_displayed, s_displayed).ToString();
-	controlPanel->Text = "Control Panel - Untitled.ct";
+	this->writeCurrInfo("Untitled.ct");
 
 	closeCurrent_Button->Enabled = true;// unlock "Close" button
 	importButton->Enabled = true;// unlock "Import" button

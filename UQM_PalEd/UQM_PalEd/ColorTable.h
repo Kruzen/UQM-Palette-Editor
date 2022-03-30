@@ -29,18 +29,19 @@ namespace CTable
 	{
 	private:
 		int paletteCount;				// number of palettes in current table;
-		array<int>^ paletteLengths;		// array of lengths of every palette
 		array<Palette^>^ palettes;		// array of palettes
 	public:
 		ColorTable(void);
+		ColorTable(int paletteCount);
 		ColorTable(int paletteCount, array<int>^ paletteLengths);
-		ColorTable(int paletteCount, array<int>^ paletteLengths, Color c);
 		~ColorTable(void);
 	public:
-		array<Byte>^ getsubArray(unsigned int start_index, unsigned int end_index, array<Byte>^ bytes);
-		array<Color>^ bytesToColors(array<Byte>^ bytes, int format);
-		array<Byte>^ colorsToBytes(array<Color>^ colors, int format);
-		void distrubutePalettes(array<Byte>^ bytes, int format);
+		array<Color>^ mergeColorArrays(array<Color>^ a, array<Color>^ b);
+		array<Byte>^ getsubArray(unsigned int start_index, unsigned int length, array<Byte>^ bytes);
+		array<Color>^ getsubColorArray(unsigned int start_index, unsigned int length, array<Color>^ colors);
+		array<Color>^ bytesToColors(array<Byte>^ bytes);
+		array<Byte>^ colorsToBytes(array<Color>^ colors);
+		void distrubutePalettes(array<Byte>^ bytes, array<int>^ paletteLengths);
 		array<Color>^ getColorPalette(int p_index, int s_index);
 		array<Color>^ getColorPalette(int p_index, int s_index, bool isPlanet);
 		int getPaletteCount(void);
@@ -49,6 +50,7 @@ namespace CTable
 		int getPaletteColorCount(int p_index);
 		int getSegmentColorCount(int p_index, int s_index);
 		array<Color>^ setPaletteSegment(int p_index, int s_index, array<Color>^ c);
+		void reshuffleSegmentsInPalette(int p_index, int s_index);
 	protected:
 		!ColorTable(void);
 	};

@@ -36,7 +36,7 @@ namespace CPalette
 	public:
 		Segment(void);
 		Segment(unsigned int length, array<Color>^ colors, bool isPlanet);
-		Segment(unsigned int length, bool isPlanet, Color c);
+		Segment(unsigned int length, bool isPlanet);
 		~Segment(void);
 	public:
 		int getSegLength(void);
@@ -66,7 +66,7 @@ namespace CPalette
 	public:
 		Palette(void);
 		Palette(unsigned int numSegs, unsigned int numColors, bool isPlanet);
-		Palette(unsigned int numSegs, unsigned int numColors, bool isPlanet, Color c);
+		Palette(unsigned int numSegs, unsigned int numColors, bool isPlanet, bool c);
 		~Palette(void);
 	public:
 		int getSegLength(int index);
