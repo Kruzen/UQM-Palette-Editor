@@ -45,6 +45,7 @@ namespace CPalette
 	public:
 		void setSegLength(unsigned int l);
 		void fillArray(array<Color>^ c);
+		Color getColor(int c_index);
 	protected:
 		!Segment(void);
 	};
@@ -77,6 +78,7 @@ namespace CPalette
 		bool getPlanetCond(void);
 		array<Color>^ returnSeg(int index);
 		array<Color>^ returnSeg(int index, bool isPlanet);
+		Color getColorFromSegment(int s_index, int c_index);
 	public:
 		void setNumSegs(int numSegs);
 		void setNumColors(int numColors);

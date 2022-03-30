@@ -216,6 +216,11 @@ bool CTable::ColorTable::getPlanetCond(int p_index)
     return palettes[p_index]->getPlanetCond();
 }
 
+Color CTable::ColorTable::getColorFromPalette(int p_index, int s_index, int c_index)
+{
+    return palettes[p_index]->getColorFromSegment(s_index, c_index);
+}
+
 int CTable::ColorTable::getPaletteColorCount(int p_index)
 {
     return palettes[p_index]->getNumColors();

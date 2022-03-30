@@ -40,7 +40,6 @@ namespace UQMPalEd {
 	private:
 		int t_displayed;
 		int s_displayed;
-		array<Color>^ currView;
 		static int mouseOver_index;
 	private: System::Windows::Forms::GroupBox^ brushBox;
 	public:

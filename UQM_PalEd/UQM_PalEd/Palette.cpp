@@ -122,6 +122,13 @@ void CPalette::Segment::fillArray(array<Color>^ c)
 	for (int i = 0; i < length; i++)
 		colors[i] = c[i];
 }
+Color CPalette::Segment::getColor(int c_index)
+{
+	if (c_index < 0 || c_index > length)
+		return colors[0];
+
+	return colors[c_index];
+}
 /*
  *
  *
@@ -234,6 +241,10 @@ array<Color>^ CPalette::Palette::returnSeg(int index, bool isPlanet)
 		return seg[index]->returnPArray();
 	else
 		return seg[index]->returnArray();
+}
+Color CPalette::Palette::getColorFromSegment(int s_index, int c_index)
+{
+	return seg[s_index]->getColor(c_index);
 }
 /*
  *

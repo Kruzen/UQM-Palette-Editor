@@ -66,12 +66,6 @@ void UQMPalEd::MainForm::fillTableView(array<Color>^ table)
 	int x = 0;
 	int y = 0;
 
-	if (!viewFilter->Checked)
-	{// if we are drawing p_table (planet filter is on) - keep true colors
-		currView = gcnew array<Color>(table->Length);
-		currView = table;
-	}
-
 	if (getImageFromRes(IDB_PNG1))
 		bmp = gcnew Bitmap(getImageFromRes(IDB_PNG1));
 	else
@@ -125,11 +119,6 @@ void UQMPalEd::MainForm::fillDropDownTables(int numTables)
 void UQMPalEd::MainForm::clearTableView(void)
 {// back to default image	
 	tableViewer->Image = background;
-	if (currView)
-	{
-		Array::Clear(currView, 0, currView->Length);
-		delete currView;
-	}
 }
 
 void UQMPalEd::MainForm::closeCurrent(void)
@@ -156,11 +145,6 @@ void UQMPalEd::MainForm::closeCurrent(void)
 	viewFilter->Visible = false;
 	viewFilter->Checked = false;
 	this->toggleBrushUI(false);
-	if (ct)
-	{
-		ct->~ColorTable();
-		delete ct;
-	}
 }
 
 void UQMPalEd::MainForm::toggleFilter(bool toggle)
@@ -255,7 +239,7 @@ System::Void UQMPalEd::MainForm::openFile_Button_Click(System::Object^ sender, S
 	// at this point no exceptions should occur
 	t_displayed = 0;
 	s_displayed = 0;
-	mouseOver_index = MAXDWORD;
+	mouseOver_index = 0;
 	fillTableView(ct->getColorPalette(t_displayed, s_displayed));
 
 	this->writeCurrInfo(Path::GetFileName(fileName));
@@ -269,6 +253,11 @@ System::Void UQMPalEd::MainForm::openFile_Button_Click(System::Object^ sender, S
 
 System::Void UQMPalEd::MainForm::closeCurrent_Button_Click(System::Object^ sender, System::EventArgs^ e)
 {// clear stuff
+	if (ct)
+	{
+		ct->~ColorTable();
+		delete ct;
+	}
 	closeCurrent();
 }
 
@@ -309,42 +298,45 @@ System::Void UQMPalEd::MainForm::viewFilter_CheckedChanged(System::Object^ sende
 
 System::Void UQMPalEd::MainForm::tableViewer_MouseMove(System::Object^ sender, System::Windows::Forms::MouseEventArgs^ e)
 {
-	int x_index = MIN((Cursor->Position.X - tableViewer->Location.X - this->Location.X - 7) / 20, 15);
-	int y_index = MIN((Cursor->Position.Y - tableViewer->Location.Y - this->Location.Y - 30) / 20, 15);
-	int n_index = y_index * 16 + x_index;
-
-	if (currView && n_index != mouseOver_index)
+	if (mouseOver_index != MAXDWORD)
 	{
-		mouseOver_index = n_index;
+		int x_index = MIN((Cursor->Position.X - tableViewer->Location.X - this->Location.X - 7) / 20, 15);
+		int y_index = MIN((Cursor->Position.Y - tableViewer->Location.Y - this->Location.Y - 30) / 20, 15);
+		int n_index = y_index * 16 + x_index;
 
-		Bitmap^ b_bmp = gcnew Bitmap(brushColorView->Size.Width, brushColorView->Size.Height);
-		Graphics^ g = Graphics::FromImage(b_bmp);
-		Color br;		
-
-		if (mouseOver_index < currView->Length)
+		if (n_index != mouseOver_index)
 		{
-			br = currView[mouseOver_index];
+			mouseOver_index = n_index;
 
-			g->FillRectangle(gcnew SolidBrush(br), 0, 0, b_bmp->Width, b_bmp->Height);
+			Bitmap^ b_bmp = gcnew Bitmap(brushColorView->Size.Width, brushColorView->Size.Height);
+			Graphics^ g = Graphics::FromImage(b_bmp);
+			Color brush;
 
-			if (!brushColorView->Visible)
-				this->toggleBrushUI(true);
+			if (mouseOver_index < ct->getSegmentColorCount(t_displayed, s_displayed))
+			{
+				brush = ct->getColorFromPalette(t_displayed, s_displayed, mouseOver_index);
 
-			B_CIndex->Text = "Color: " + mouseOver_index.ToString();
-			brushColorView->Image = b_bmp;
-			hexValue->Text = "#" + br.R.ToString("X2") + br.G.ToString("X2") + br.B.ToString("X2");
-			B_RValue->Text = br.R.ToString();
-			B_GValue->Text = br.G.ToString();
-			B_BValue->Text = br.B.ToString();
+				g->FillRectangle(gcnew SolidBrush(brush), 0, 0, b_bmp->Width, b_bmp->Height);
+
+				if (!brushColorView->Visible)
+					this->toggleBrushUI(true);
+
+				B_CIndex->Text = "Color: " + mouseOver_index.ToString();
+				brushColorView->Image = b_bmp;
+				hexValue->Text = "#" + brush.R.ToString("X2") + brush.G.ToString("X2") + brush.B.ToString("X2");
+				B_RValue->Text = brush.R.ToString();
+				B_GValue->Text = brush.G.ToString();
+				B_BValue->Text = brush.B.ToString();
+			}
+			else
+				this->toggleBrushUI(false);
 		}
-		else
-			this->toggleBrushUI(false);
 	}
 }
 
 System::Void UQMPalEd::MainForm::tableViewer_MouseEnter(System::Object^ sender, System::EventArgs^ e)
 {
-	if (currView)
+	if (mouseOver_index != MAXDWORD)
 		this->toggleBrushUI(true);
 
 }
