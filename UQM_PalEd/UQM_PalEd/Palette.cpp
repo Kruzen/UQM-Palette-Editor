@@ -135,6 +135,17 @@ void CPalette::Segment::setColor(int c_index, Color c)
 		return;
 
 	colors[c_index] = c;
+
+	if (p_colors)
+	{
+		array<Byte>^ clr = gcnew array<Byte>(BYTES_PER_COLOR);
+
+		clr[RED] = c.R >> 1;
+		clr[GREEN] = c.G >> 1;
+		clr[BLUE] = c.B >> 1;
+
+		p_colors[c_index] = Color::FromArgb(CC5TO8(clr[RED]), CC5TO8(clr[GREEN]), CC5TO8(clr[BLUE]));
+	}
 }
 /*
  *
