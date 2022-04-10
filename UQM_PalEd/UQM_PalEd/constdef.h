@@ -1,4 +1,4 @@
-// Ur-Quan Masters Palette Editor v0.0.9
+// Ur-Quan Masters Palette Editor
 
 /*
  *	This program is created as a tool to view/modify/create
@@ -39,17 +39,25 @@
 #define BLUE 2
 #define FLAG 3
 
+#define CT_FILTER "UQM color table (*.ct)|*.ct"
+#define PAL_FILTER "Adobe© color table (*.act)|*.act|Microsoft© palette(*.pal)|*.pal"
+#define ALL_FILTER "UQM color table (*.ct)|*.ct|Adobe© color table (*.act)|*.act|Microsoft© palette(*.pal)|*.pal"
+
 // macros
 #define MAX(a,b) (a > b ? a : b)
 #define MIN(a,b) (a < b ? a : b)
 #define CC5TO8(c) (MIN(((c << 3) | (c >> 2)), 0xFF))// based on UQM source code
 #define FLIP_INT16(i) (((i & 0xFF00) >> 8) | ((i & 0x00FF) << 8))
 #define FLIP_INT32(i) (((i & 0xFF000000) >> 24) | ((i & 0x00FF0000) >> 8) | ((i & 0x0000FF00) << 8) | ((i & 0x000000FF) << 24))
+#define INDEX_TO_X(i) (i & 0x0000000F)
+#define INDEX_TO_Y(i) ((i & 0x000000F0) >> 4)
 
 static enum
 {
 	NON,
 	CT_FILE,
+	OLD_CT_FILE,
+	XLT_FILE,
 	RIFF_FILE,
 	ACT_FILE,
 	LAST_FILE_TYPE = ACT_FILE

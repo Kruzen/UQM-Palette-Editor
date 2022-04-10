@@ -1,4 +1,4 @@
-// Ur-Quan Masters Palette Editor v0.0.9
+// Ur-Quan Masters Palette Editor
 
 /*
  *	This program is created as a tool to view/modify/create
@@ -60,13 +60,13 @@ CPalette::Segment::Segment(unsigned int length, array<Color>^ colors, bool isPla
 		this->tableToPTable();
 }
 
-CPalette::Segment::Segment(unsigned int length, bool isPlanet)
+CPalette::Segment::Segment(unsigned int length, bool isPlanet, array<int>^ rand)
 {
 	this->length = length;
 	this->colors = gcnew array<Color>(this->length);
 
 	for (int i = 0; i < this->length; i++)
-		this->colors[i] = Color::FromArgb(127 * (i % 3), 42 * (i % 3), 27 * (i % 3));
+		this->colors[i] = Color::FromArgb(rand[0] * (i % 3), rand[1] * (i % 3), rand[2] * (i % 3));
 
 	if (isPlanet)
 		this->tableToPTable();
@@ -129,6 +129,13 @@ Color CPalette::Segment::getColor(int c_index)
 
 	return colors[c_index];
 }
+void CPalette::Segment::setColor(int c_index, Color c)
+{
+	if (c_index < 0 || c_index > length)
+		return;
+
+	colors[c_index] = c;
+}
 /*
  *
  *
@@ -177,17 +184,24 @@ CPalette::Palette::Palette(unsigned int numSegs, unsigned int numColors, bool is
 		this->seg[i] = gcnew Segment();
 }
 
-CPalette::Palette::Palette(unsigned int numSegs, unsigned int numColors, bool isPlanet, bool c)
+CPalette::Palette::Palette(unsigned int numSegs, unsigned int numColors, bool isPlanet, int r)
 {
 	this->numSegs = numSegs;
 	this->numColors = numColors;
 	this->isPlanet = isPlanet;
 	seg = gcnew array<Segment^>(this->numSegs);
 
+	array<int>^ rand = gcnew array<int>(3);
+	{
+		rand[r % 3] = 127;
+		rand[(r + 1) % 3] = 42;
+		rand[(r + 2) % 3] = 27;
+	}
+
 	unsigned int remainColors = this->numColors;
 	for (int i = 0; i < this->numSegs; i++)
 	{
-		seg[i] = gcnew Segment(MIN(remainColors, MAX_COLORS_PER_TABLE), this->isPlanet);
+		seg[i] = gcnew Segment(MIN(remainColors, MAX_COLORS_PER_TABLE), this->isPlanet, rand);
 		remainColors -= MAX_COLORS_PER_TABLE;
 	}
 }
@@ -245,6 +259,10 @@ array<Color>^ CPalette::Palette::returnSeg(int index, bool isPlanet)
 Color CPalette::Palette::getColorFromSegment(int s_index, int c_index)
 {
 	return seg[s_index]->getColor(c_index);
+}
+void CPalette::Palette::setColorFromSegment(int s_index, int c_index, Color c)
+{
+	seg[s_index]->setColor(c_index, c);
 }
 /*
  *

@@ -1,4 +1,4 @@
-// Ur-Quan Masters Palette Editor v0.0.9
+// Ur-Quan Masters Palette Editor
 
 /*
  *	This program is created as a tool to view/modify/create
@@ -51,6 +51,60 @@ unsigned int FManager::FileManager::getFileExtensionCode(String^ fName)
     return BitConverter::ToInt32(System::Text::Encoding::ASCII->GetBytes(extention), 0);
 }
 
+array<Byte>^ FManager::FileManager::decryptOldCT(BinaryReader^ br)
+{// based on old UQM code
+ // sourceforge.net/p/sc2/uqm/ci/initial/tree/sc2/src/sc2code/libs/graphics/cmap.c @line 41
+
+    array<Byte>^ decBytes = gcnew array<Byte>(MAX_BYTES_PER_SEGMENT * paletteCount);
+    Byte r, g, b;
+    int cval;
+    int k;
+
+    for (int p = 0; p < paletteCount; p++)
+    {
+        br->BaseStream->Position += 2;
+
+        for (int i = 0; i < 32;)
+        {
+            cval = br->ReadUInt32();
+
+            cval = FLIP_INT32(cval);
+
+            r = (cval >> 26) & 0x1f;
+            g = (cval >> 21) & 0x1f;
+            b = (cval >> 16) & 0x1f;
+
+            for (int j = 0; j < 8; ++j)
+            {
+                k = ((j << 5) + i) + (MAX_COLORS_PER_TABLE * p);
+
+                decBytes[(k * BYTES_PER_COLOR) + RED] = r * (j + 1);
+                decBytes[(k * BYTES_PER_COLOR) + GREEN] = g * (j + 1);
+                decBytes[(k * BYTES_PER_COLOR) + BLUE] = b * (j + 1);
+            }
+
+            ++i;
+
+            r = (cval >> 10) & 0x1f;
+            g = (cval >> 5) & 0x1f;
+            b = cval & 0x1f;
+
+            for (int j = 0; j < 8; ++j)
+            {
+                k = ((j << 5) + i) + (MAX_COLORS_PER_TABLE * p);
+
+                decBytes[(k * BYTES_PER_COLOR) + RED] = r * (j + 1);
+                decBytes[(k * BYTES_PER_COLOR) + GREEN] = g * (j + 1);
+                decBytes[(k * BYTES_PER_COLOR) + BLUE] = b * (j + 1);
+            }
+
+            ++i;
+        }
+    }
+    
+    return decBytes;
+}
+
 void FManager::FileManager::checkCT(String^ fName)
 {// check format of .ct file
     BinaryReader^ br = gcnew BinaryReader(gcnew FileStream(fName, FileMode::Open));
@@ -101,9 +155,16 @@ void FManager::FileManager::checkCT(String^ fName)
 
         if (p_lengths[i] == 0 || (p_lengths[i] - 2) % 3 != 0)// not 3 bytes per color
         {
-            pos = br->BaseStream->Position;
-            br->Close();
-            throw gcnew FormatException("Incorrect length of table " + (i + 1) + "! Byte: " + p_lengths[i]);
+            if (p_lengths[i] == 66)
+            {
+                fileType = OLD_CT_FILE;
+            }
+            else
+            {
+                pos = br->BaseStream->Position;
+                br->Close();
+                throw gcnew FormatException("Incorrect length of table " + (i + 1) + "! Byte: " + p_lengths[i]);
+            }
         }
     }
 
@@ -116,7 +177,10 @@ void FManager::FileManager::checkCT(String^ fName)
             controlSum += p_lengths[i];
 
             p_lengths[i] -= 2;
-            p_lengths[i] /= BYTES_PER_COLOR;// leave only colors
+            if (fileType == OLD_CT_FILE)
+                p_lengths[i] = MAX_COLORS_PER_TABLE;// old .ct always had 256 colors after decryption
+            else
+                p_lengths[i] /= BYTES_PER_COLOR;// leave only colors
         }
 
         if (br->BaseStream->Length != controlSum)
@@ -216,6 +280,120 @@ void FManager::FileManager::checkACT(String^ fName)
     }
     br->Close();
 }
+
+void FManager::FileManager::writeCT(BinaryWriter^ bw, array<Byte>^ bytes)
+{// write uqm .ct file
+    bool isPlanet = false;
+    int j = 0;
+
+    // tech bytes
+    bw->Write(CT);
+
+    bw->Write((unsigned short)0);
+
+    bw->Write((unsigned short)FLIP_INT16(paletteCount));
+
+    bw->Write((unsigned int)0);
+
+    for (int i = 0; i < paletteCount; i++)
+        bw->Write((unsigned int)FLIP_INT32((paletteLengths[i] * BYTES_PER_COLOR) + 2));
+
+    if (paletteCount == 3)
+        isPlanet = (paletteLengths[0] == 128 && paletteLengths[1] == 128 && paletteLengths[2] == 128);
+
+    // palettes
+    for (int i = 0; i < paletteCount; i++)
+    {
+        int start_index;
+        int end_index;
+
+        if (!isPlanet)
+        {
+            start_index = 0x0A;
+            end_index = start_index;
+            int segs = paletteLengths[i] / MAX_COLORS_PER_TABLE;
+
+            if (segs < 1)
+                segs = 1;// one segment of less than 256 colors (i.e. planet table)
+            else
+                segs += ((paletteLengths[i] % MAX_COLORS_PER_TABLE) != 0);// +1 segment if it's <256 colors in length
+
+            // to cap some limitations
+            if (segs > 20)
+                start_index = 0x00;
+
+            end_index += (segs - 1);
+
+            if (end_index > 0xFF)
+                end_index = 0xFF;
+        }
+        else
+        {
+            start_index = 0x80;
+            end_index = 0xFF;
+        }
+
+
+        bw->Write((unsigned char)start_index);
+        bw->Write((unsigned char)end_index);
+
+        for (int k = 0; k < paletteLengths[i]; k++)
+        {
+            bw->Write((unsigned char)bytes[(j * BYTES_PER_COLOR) + RED]);
+            bw->Write((unsigned char)bytes[(j * BYTES_PER_COLOR) + GREEN]);
+            bw->Write((unsigned char)bytes[(j * BYTES_PER_COLOR) + BLUE]);
+            j++;
+        }
+    }
+}
+
+void FManager::FileManager::writeRIFF(BinaryWriter^ bw, array<Byte>^ bytes)
+{// write RIFF file
+    int length = paletteLengths[0] * BYTES_PER_COLOR_RIFF + RIFF_TECH_BYTE_LENGTH;// determine length of the final file in bytes
+
+    // write tech bytes
+    bw->Write(RIFF);
+
+    bw->Write(length - 8);
+
+    bw->Write(PAL);
+
+    bw->Write(DATA);
+
+    bw->Write(length - 20);
+
+    bw->Write((unsigned short)768);
+
+    bw->Write((unsigned short)paletteLengths[0]);
+
+    // write colors (FLAG byte is always 0x00)
+    for (int i = 0; i < paletteLengths[0]; i++)
+    {
+        bw->Write((unsigned char)bytes[(i * BYTES_PER_COLOR) + RED]);
+        bw->Write((unsigned char)bytes[(i * BYTES_PER_COLOR) + GREEN]);
+        bw->Write((unsigned char)bytes[(i * BYTES_PER_COLOR) + BLUE]);
+        bw->Write((unsigned char)0x00);
+    }
+}
+void FManager::FileManager::writeACT(BinaryWriter^ bw, array<Byte>^ bytes)
+{
+    for (int i = 0; i < paletteLengths[0]; i++)
+    {
+        bw->Write((unsigned char)bytes[(i * BYTES_PER_COLOR) + RED]);
+        bw->Write((unsigned char)bytes[(i * BYTES_PER_COLOR) + GREEN]);
+        bw->Write((unsigned char)bytes[(i * BYTES_PER_COLOR) + BLUE]);
+    }
+
+    if (paletteLengths[0] < 256)
+    {
+        for (int i = 0; i < (256 - paletteLengths[0]) * BYTES_PER_COLOR; i++)
+            bw->Write((unsigned char)0x00);
+
+        bw->Write((unsigned char)0x00);
+        bw->Write((unsigned char)paletteLengths[0]);
+        bw->Write((unsigned short)0xFFFF);
+    }
+}
 /*
  *
  *
@@ -238,10 +416,10 @@ FManager::FileManager::FileManager(void)
     this->paletteLengths[0] = 1;
 }
 
-FManager::FileManager::FileManager(String^ filename, int fileType, int paletteCount, array<int>^ paletteLengths)
+FManager::FileManager::FileManager(String^ filename, int paletteCount, array<int>^ paletteLengths)
 {// constructor
     this->fileName = filename;
-    this->fileType = fileType;
+    this->fileType = NON;
     this->paletteCount = paletteCount;
 
     if (this->paletteLengths)
@@ -308,6 +486,16 @@ array<Byte>^ FManager::FileManager::extractColorBytes(void)
                 for (int j = 0; j < paletteLengths[i] * BYTES_PER_COLOR; j++, k++)
                     cBytes[k] = br->ReadByte();
             }
+            br->Close();
+            break;
+        }
+        case OLD_CT_FILE:
+        {
+            br->BaseStream->Position = CT_TECH_BYTE_LENGTH + (NUM_BYTES_PER_TABLE_LENGTH * paletteCount);
+            
+            cBytes = this->decryptOldCT(br);
+
+            br->Close();
             break;
         }
         case RIFF_FILE:
@@ -354,6 +542,65 @@ array<Byte>^ FManager::FileManager::extractColorBytes(void)
 String^ FManager::FileManager::getFileNameFromPath(void)
 {
     return Path::GetFileName(fileName);
+}
+void FManager::FileManager::writeIntupFile(array<Byte>^ bytes)
+{
+    if (!fileName)
+        return;
+
+    BinaryWriter^ bw; 
+
+    if (File::Exists(fileName))
+    {
+        int index = 1;
+        String^ newName = fileName + ".bak" + index;
+
+        while (File::Exists(newName) && index != 5)
+        {// up to 5 backups
+            index++;
+            newName = fileName + ".bak" + index;
+        }
+
+        File::Copy(fileName, newName, true);
+
+        File::Delete(fileName);
+    }
+    
+    bw = gcnew BinaryWriter(gcnew FileStream(fileName, FileMode::Create, FileAccess::Write));
+
+    switch (this->getFileExtensionCode(fileName))
+    {
+    case CT_SIGNATURE:
+    {
+        this->writeCT(bw, bytes);
+        break;
+    }
+    case PAL_SIGNATURE:
+    {
+        if (paletteCount > 1 || paletteLengths[0] > 256)
+        {
+            bw->Close();
+            throw gcnew FormatException("Incorrect data array!");
+        }
+        this->writeRIFF(bw, bytes);
+        break;
+    }
+    case ACT_SIGNATURE:
+    {
+        if (paletteCount > 1 || paletteLengths[0] > 256)
+        {
+            bw->Close();
+            throw gcnew FormatException("Incorrect data array!");
+        }
+        this->writeACT(bw, bytes);
+        break;
+    }
+    default:
+        bw->Close();
+        throw gcnew FormatException("Unknonw file format!");
+    }
+
+    bw->Close();
 }
 /*
  *

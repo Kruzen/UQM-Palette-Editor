@@ -1,4 +1,4 @@
-// Ur-Quan Masters Palette Editor v0.0.9
+// Ur-Quan Masters Palette Editor
 
 /*
  *	This program is created as a tool to view/modify/create
@@ -60,7 +60,7 @@ CTable::ColorTable::ColorTable(int paletteCount, array<int>^ paletteLengths)
         else
             segs += ((paletteLengths[i] % MAX_COLORS_PER_TABLE) != 0);// +1 segment if it's <256 colors in length
 
-        palettes[i] = gcnew Palette(segs, paletteLengths[i], isPlanet, true);
+        palettes[i] = gcnew Palette(segs, paletteLengths[i], isPlanet, i);
     }
 }
 
@@ -144,7 +144,7 @@ array<Color>^ CTable::ColorTable::bytesToColors(array<Byte>^ bytes)
 
 array<Byte>^ CTable::ColorTable::colorsToBytes(array<Color>^ colors)
 {// transform color array into byte array
-    array<Byte>^ bytes;
+    array<Byte>^ bytes = gcnew array<Byte>(colors->Length * BYTES_PER_COLOR);
 
     for (int i = 0; i < colors->Length; i++)
     {
@@ -154,6 +154,19 @@ array<Byte>^ CTable::ColorTable::colorsToBytes(array<Color>^ colors)
     }
 
     return bytes;
+}
+
+array<Byte>^ CTable::ColorTable::getEverything(void)
+{
+    array<Color>^ fullTable;
+
+    for (int p_index = 0; p_index < paletteCount; p_index++)
+    {
+        for (int s_index = 0; s_index < palettes[p_index]->getNumSegs(); s_index++)
+            fullTable = this->mergeColorArrays(palettes[p_index]->returnSeg(s_index), fullTable);
+    }
+    
+    return this->colorsToBytes(fullTable);
 }
 
 void CTable::ColorTable::distrubutePalettes(array<Byte>^ bytes, array<int>^ paletteLengths)
@@ -216,9 +229,24 @@ bool CTable::ColorTable::getPlanetCond(int p_index)
     return palettes[p_index]->getPlanetCond();
 }
 
+array<int>^ CTable::ColorTable::getPaletteLengths(void)
+{
+    array<int>^ res = gcnew array<int>(paletteCount);
+
+    for (int i = 0; i < paletteCount; i++)
+        res[i] = this->getPaletteColorCount(i);
+
+    return res;
+}
+
 Color CTable::ColorTable::getColorFromPalette(int p_index, int s_index, int c_index)
 {
     return palettes[p_index]->getColorFromSegment(s_index, c_index);
+}
+
+void CTable::ColorTable::setColorFromPalette(int p_index, int s_index, int c_index, Color c)
+{
+    palettes[p_index]->setColorFromSegment(s_index, c_index, c);
 }
 
 int CTable::ColorTable::getPaletteColorCount(int p_index)

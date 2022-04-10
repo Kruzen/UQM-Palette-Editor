@@ -1,4 +1,4 @@
-// Ur-Quan Masters Palette Editor v0.0.9
+// Ur-Quan Masters Palette Editor
 
 /*
  *	This program is created as a tool to view/modify/create
@@ -33,16 +33,21 @@ namespace FManager
 	private:
 		void reInitValues(String^ fName, int p_count, array<int>^ p_lengths);
 		unsigned int getFileExtensionCode(String^ fName);
+		array<Byte>^ decryptOldCT(BinaryReader^ br);
 		void checkCT(String^ fName);
 		void checkRIFF(String^ fName);
 		void checkACT(String^ fName);
+		void writeCT(BinaryWriter^ bw, array<Byte>^ bytes);
+		void writeRIFF(BinaryWriter^ bw, array<Byte>^ bytes);
+		void writeACT(BinaryWriter^ bw, array<Byte>^ bytes);
 	public:
 		FileManager(void);
-		FileManager(String^ filename, int fileType, int paletteCount, array<int>^ paletteLengths);
+		FileManager(String^ filename, int paletteCount, array<int>^ paletteLengths);
 		~FileManager(void);
 		void checkFileFormat(String^ fname);
 		array<Byte>^ extractColorBytes(void);
 		String^ getFileNameFromPath(void);
+		void writeIntupFile(array<Byte>^ bytes);
 	public:
 		String^ getFileName(void);
 		int getFileType(void);

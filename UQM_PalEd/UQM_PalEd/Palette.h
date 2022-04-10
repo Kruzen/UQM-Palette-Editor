@@ -1,4 +1,4 @@
-// Ur-Quan Masters Palette Editor v0.0.9
+// Ur-Quan Masters Palette Editor
 
 /*
  *	This program is created as a tool to view/modify/create
@@ -20,7 +20,7 @@ using namespace System::Drawing;
 #pragma once
 namespace CPalette
 {/*
-  * Segment is an atomic part - an array of colors with length of 256 or less
+  * Segment (CLUT in UQM code) is an atomic part - an array of colors with length of 256 or less
   * Color array can be created from array of bytes with length of multiples of 3
   * Segment length is a number of its colors, not a length of a byte array that created it
   * Segment is what being displayed on a main form
@@ -36,7 +36,7 @@ namespace CPalette
 	public:
 		Segment(void);
 		Segment(unsigned int length, array<Color>^ colors, bool isPlanet);
-		Segment(unsigned int length, bool isPlanet);
+		Segment(unsigned int length, bool isPlanet, array<int>^ rand);
 		~Segment(void);
 	public:
 		int getSegLength(void);
@@ -46,6 +46,7 @@ namespace CPalette
 		void setSegLength(unsigned int l);
 		void fillArray(array<Color>^ c);
 		Color getColor(int c_index);
+		void setColor(int c_index, Color c);
 	protected:
 		!Segment(void);
 	};
@@ -67,7 +68,7 @@ namespace CPalette
 	public:
 		Palette(void);
 		Palette(unsigned int numSegs, unsigned int numColors, bool isPlanet);
-		Palette(unsigned int numSegs, unsigned int numColors, bool isPlanet, bool c);
+		Palette(unsigned int numSegs, unsigned int numColors, bool isPlanet, int r);
 		~Palette(void);
 	public:
 		int getSegLength(int index);
@@ -79,6 +80,7 @@ namespace CPalette
 		array<Color>^ returnSeg(int index);
 		array<Color>^ returnSeg(int index, bool isPlanet);
 		Color getColorFromSegment(int s_index, int c_index);
+		void setColorFromSegment(int s_index, int c_index, Color c);
 	public:
 		void setNumSegs(int numSegs);
 		void setNumColors(int numColors);

@@ -1,4 +1,4 @@
-// Ur-Quan Masters Palette Editor v0.0.9
+// Ur-Quan Masters Palette Editor
 
 /*
  *	This program is created as a tool to view/modify/create
@@ -41,13 +41,16 @@ namespace CTable
 		array<Color>^ getsubColorArray(unsigned int start_index, unsigned int length, array<Color>^ colors);
 		array<Color>^ bytesToColors(array<Byte>^ bytes);
 		array<Byte>^ colorsToBytes(array<Color>^ colors);
+		array<Byte>^ getEverything(void);
 		void distrubutePalettes(array<Byte>^ bytes, array<int>^ paletteLengths);
 		array<Color>^ getColorPalette(int p_index, int s_index);
 		array<Color>^ getColorPalette(int p_index, int s_index, bool isPlanet);
 		int getPaletteCount(void);
 		int getSegCount(int p_index);
 		bool getPlanetCond(int p_index);
+		array<int>^ getPaletteLengths(void);
 		Color getColorFromPalette(int p_index, int s_index, int c_index);
+		void setColorFromPalette(int p_index, int s_index, int c_index, Color c);
 		int getPaletteColorCount(int p_index);
 		int getSegmentColorCount(int p_index, int s_index);
 		array<Color>^ setPaletteSegment(int p_index, int s_index, array<Color>^ c);

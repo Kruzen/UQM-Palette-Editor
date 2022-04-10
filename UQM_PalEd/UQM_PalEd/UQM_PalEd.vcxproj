@@ -125,6 +125,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ColorTable.cpp" />
+    <ClCompile Include="CreateForm.cpp" />
     <ClCompile Include="FileManager.cpp" />
     <ClCompile Include="MainForm.cpp" />
     <ClCompile Include="Palette.cpp" />
@@ -132,6 +133,9 @@
   <ItemGroup>
     <ClInclude Include="ColorTable.h" />
     <ClInclude Include="constdef.h" />
+    <ClInclude Include="CreateForm.h">
+      <FileType>CppForm</FileType>
+    </ClInclude>
     <ClInclude Include="FileManager.h" />
     <ClInclude Include="MainForm.h">
       <FileType>CppForm</FileType>
@@ -140,6 +144,9 @@
     <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="CreateForm.resx">
+      <DependentUpon>CreateForm.h</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="MainForm.resx">
       <DependentUpon>MainForm.h</DependentUpon>
     </EmbeddedResource>
