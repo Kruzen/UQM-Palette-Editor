@@ -43,6 +43,20 @@
 #define PAL_FILTER "Adobe© color table (*.act)|*.act|Microsoft© palette(*.pal)|*.pal"
 #define ALL_FILTER "UQM color table (*.ct)|*.ct|Adobe© color table (*.act)|*.act|Microsoft© palette(*.pal)|*.pal"
 
+//UQM values
+#define MAP_WIDTH 210
+#define MAP_HEIGHT 67
+#define HD_FACTOR 2
+
+#define GAS_GIANT_ALGO 0
+#define TOPO_ALGO 1
+#define CRATERED_ALGO 2
+
+#define RANGE_SHIFT 6
+#define DITHER_VARIANCE  (1 << (RANGE_SHIFT - 3))
+#define MAX_STORMS 8
+#define NUM_BAND_COLORS 4
+
 // macros
 #define MAX(a,b) (a > b ? a : b)
 #define MIN(a,b) (a < b ? a : b)
@@ -51,6 +65,10 @@
 #define FLIP_INT32(i) (((i & 0xFF000000) >> 24) | ((i & 0x00FF0000) >> 8) | ((i & 0x0000FF00) << 8) | ((i & 0x000000FF) << 24))
 #define INDEX_TO_X(i) (i & 0x0000000F)
 #define INDEX_TO_Y(i) ((i & 0x000000F0) >> 4)
+#define LOWORD(i) ((short)(i & 0x0000FFFF))
+#define HIWORD(i) ((short)((i & 0xFFFF0000) >> 4))
+#define LOBYTE(i) ((char)(i & 0x00FF))
+#define HIBYTE(i) ((char)((i & 0xFF00) >> 2))
 
 static enum
 {

@@ -132,8 +132,10 @@
     <ClCompile Include="ColorTable.cpp" />
     <ClCompile Include="CreateForm.cpp" />
     <ClCompile Include="FileManager.cpp" />
+    <ClCompile Include="GenPlanet.cpp" />
     <ClCompile Include="MainForm.cpp" />
     <ClCompile Include="Palette.cpp" />
+    <ClCompile Include="RandomUQM.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ColorTable.h" />
@@ -142,10 +144,13 @@
       <FileType>CppForm</FileType>
     </ClInclude>
     <ClInclude Include="FileManager.h" />
+    <ClInclude Include="GenPlanet.h" />
     <ClInclude Include="MainForm.h">
       <FileType>CppForm</FileType>
     </ClInclude>
     <ClInclude Include="Palette.h" />
+    <ClInclude Include="Plandata.h" />
+    <ClInclude Include="RandomUQM.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>
