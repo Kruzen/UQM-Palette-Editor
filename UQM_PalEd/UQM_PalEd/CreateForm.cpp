@@ -17,6 +17,7 @@
 #include "CreateForm.h"
 #include "constdef.h"
 
+
 UQMPalEd::CreateForm::CreateForm(void)
 {
 	{

@@ -198,7 +198,7 @@ void GenPlanet::deltaTopography(int num_iterations, char* depthArray, RECT_UQM* 
 				LineDDA1.error_term -= LineDDA1.delta_x;
 			}
 		} while (--h);
-	} while (--num_iterations);
+	} while (--num_iterations);	
 }
 
 void GenPlanet::ditherMap(char* depthArray, short width, short height)
@@ -595,6 +595,9 @@ void GenPlanet::makeGasGiant(short num_bands, char* depthArray, RECT_UQM* pRect,
 	char* lpDst;
 	unsigned int loword, hiword;
 	int rand_val;
+
+	if (num_bands > 19)
+		num_bands = 19;
 
 	band_height = MAP_HEIGHT / num_bands;
 	band_bump = MAP_HEIGHT % num_bands;
