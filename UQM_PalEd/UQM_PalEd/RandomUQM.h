@@ -34,7 +34,7 @@
 #define A 16807 /* a relatively prime number -- also M div Q */
 #define M 2147483647L /* 0xFFFFFFFF / 2 */
 #define Q 127773L /* M div A */
-#define R 2836 /* M mod A */
+#define D 2836 /* M mod A */
 
 #pragma once
 class RandomUQM

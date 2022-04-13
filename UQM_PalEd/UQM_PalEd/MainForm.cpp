@@ -23,6 +23,10 @@
 #include "resource.h"
 #include "constdef.h"
 #include "CreateForm.h"
+#include "PlanetSide.h"
+#include "Plandata.h"
+#include "GenPlanet.h"
+#include <wchar.h>
 
 using namespace System;
 using namespace System::Windows::Forms;
@@ -62,6 +66,17 @@ UQMPalEd::MainForm::MainForm(void)
 	colorDialog->ShowHelp = false;
 	colorDialog->AllowFullOpen = true;
 	colorDialog->FullOpen = true;
+
+	algoChooser->Items->Add("Default");
+	algoChooser->Items->Add("Crater");
+	algoChooser->Items->Add("Gas Giant");
+	algoChooser->SelectedIndex = 0;
+
+	for (int i = 0; i <= NUMBER_OF_PLANET_TYPES; i++)
+		presetBox->Items->Add(gcnew String(planet_name_array[i].c_str()));
+
+	
+	//debug->Text += (158 % 210);
 }
 
 
@@ -142,6 +157,7 @@ void UQMPalEd::MainForm::toggleFilter(bool toggle)
 	viewFilter->Checked = false;
 	viewFilter->Enabled = toggle;
 	viewFilter->Visible = toggle;
+	genPlanet->Enabled = toggle;
 }
 
 void UQMPalEd::MainForm::clearTableView(void)
@@ -171,10 +187,8 @@ void UQMPalEd::MainForm::closeCurrent(void)
 	CiS_value->Text = "0";
 	fileName = "";
 	modified = false;
-	controlPanel->Text = "Control Panel";	
-	viewFilter->Enabled = false;
-	viewFilter->Visible = false;
-	viewFilter->Checked = false;
+	controlPanel->Text = "Control Panel";
+	this->toggleFilter(false);
 	this->toggleBrushUI(false);
 }
 
@@ -600,4 +614,122 @@ System::Void UQMPalEd::MainForm::MainForm_MouseClick(System::Object^ sender, Sys
 {// remove highlight from cell
 	
 	this->removeSelection();
+}
+
+
+
+
+/* Planet generation */
+System::Void UQMPalEd::MainForm::genButton_Click(System::Object^ sender, System::EventArgs^ e)
+{
+	if (!xlt || !ct)
+		return;
+
+	char* d = (char*)calloc(840 * 268, sizeof(char));
+	//char* dt = (char*)malloc(840*268 * sizeof(char));
+	GenPlanet* gp;
+	TopoFrame desc;
+	Bitmap^ tFrame = gcnew Bitmap(840, 268);
+
+	
+	try
+	{
+		if (seedInput->Text != "")
+			gp = new GenPlanet(Convert::ToInt32(seedInput->Text));
+		else
+			gp = new GenPlanet();
+
+		desc.algo = algoChooser->SelectedIndex;
+		desc.num_faults = Convert::ToInt32(gpFaults->Text);
+		desc.fault_depth = Convert::ToInt32(gpDepth->Text);
+		desc.num_blemishes = Convert::ToInt32(gpBlem->Text);
+		desc.base_elevation = Convert::ToInt32(gpElev->Text);
+
+		gp->generatePlanetSurface(d, &desc);
+		delete gp;
+
+		int c;
+		int a = 0;
+		for (int i = 0; i < 268; i++)
+		{
+			for (int j = 0; j < 840; j++)
+			{
+				if (desc.algo == GAS_GIANT_ALGO)
+				{
+					c = d[a] & 0xFF;
+				}
+				else				
+				{
+					c = d[a] + desc.base_elevation;//(int)((float)(desc.base_elevation) * 1.3);
+					if (c < 0)
+						c = 0;
+					if (c > 255)
+						c = 255;
+				}
+				tFrame->SetPixel(j, i, ct->getColorFromPPalette(t_displayed, s_displayed, xlt[c] - 128));
+				a++;
+			}			
+		}
+	}
+	catch (Exception^ e)
+	{
+		this->invokeMessageBox(e->Message, true);
+	}
+	free(d);
+	PlanetSide^ ps = gcnew PlanetSide(tFrame);
+	ps->Show();
+//	
+}
+
+System::Void UQMPalEd::MainForm::load_xltButton_Click(System::Object^ sender, System::EventArgs^ e)
+{
+	String^ fname;
+	FileManager^ fm;
+
+	importFileDialog->FileName = "";
+	importFileDialog->Filter = XLT_FILTER;
+	importFileDialog->ShowDialog();
+	fname = importFileDialog->FileName;
+
+	if (fname == "")
+		return;
+
+	try
+	{
+		fm = gcnew FileManager();
+		fm->checkFileFormat(fname);
+		xlt = fm->extractColorBytes();
+	}
+	catch (Exception^ e)
+	{
+		invokeMessageBox(e->ToString(), true);
+		return;
+	}
+	importFileDialog->Filter = ALL_FILTER;
+	load_xltButton->Text = fm->getFileNameFromPath();
+	genButton->Enabled = true;
+
+	fm->~FileManager();
+	delete fm;
+}
+
+System::Void UQMPalEd::MainForm::presetBox_SelectedIndexChanged(System::Object^ sender, System::EventArgs^ e)
+{
+	if (presetBox->SelectedIndex != 0)
+	{
+		gpFaults->Text = planet_array[presetBox->SelectedIndex - 1].num_faults.ToString();
+		gpDepth->Text = planet_array[presetBox->SelectedIndex - 1].fault_depth.ToString();
+		gpBlem->Text = planet_array[presetBox->SelectedIndex - 1].num_blemishes.ToString();
+		gpElev->Text = planet_array[presetBox->SelectedIndex - 1].base_elevation.ToString();
+		algoChooser->SelectedIndex = planet_array[presetBox->SelectedIndex - 1].algo;
+	}
+}
+
+System::Void UQMPalEd::MainForm::gpInput_KeyPress(System::Object^ sender, System::Windows::Forms::KeyPressEventArgs^ e)
+{
+	if (!Char::IsDigit(e->KeyChar) && !Char::IsControl(e->KeyChar))
+		e->Handled = true;
+
+	if (presetBox->SelectedIndex != 0)
+		presetBox->SelectedIndex = 0;
 }

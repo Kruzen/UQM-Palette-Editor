@@ -281,6 +281,67 @@ void FManager::FileManager::checkACT(String^ fName)
     br->Close();
 }
 
+void FManager::FileManager::checkXLT(String^ fName)
+{
+    BinaryReader^ br = gcnew BinaryReader(gcnew FileStream(fName, FileMode::Open));
+    long pos;
+    unsigned int p_count;
+    array<int>^ p_lengths;
+
+    // Check compression {0xFFFFFFFF}
+    if (br->ReadUInt32() != CT)
+    {
+        pos = br->BaseStream->Position;
+        br->Close();
+        throw gcnew FormatException("File is not compressed! Byte: " + pos);
+    }
+
+    // Check White spot {0x0000}
+    if (br->ReadUInt16() != 0)
+    {
+        pos = br->BaseStream->Position;
+        br->Close();
+        throw gcnew FormatException("File is damaged! Byte: " + pos);
+    }
+
+    // Get Num of color tables {0x0001}
+    p_count = br->ReadUInt16();
+    p_count = FLIP_INT16(p_count);
+    if (p_count != 1)
+    {
+        pos = br->BaseStream->Position;
+        br->Close();
+        throw gcnew FormatException("Wrong number of tables! Byte: " + pos);
+    }
+
+    // Check unused space of 4 bytes {0x00000000}
+    if (br->ReadUInt32() != 0)
+    {
+        pos = br->BaseStream->Position;
+        br->Close();
+        throw gcnew FormatException("File is not correct in unused space! Byte: " + pos);
+    }
+
+    // Get length of tables {0x00000302}
+    p_lengths = gcnew array<int>(p_count);
+    for (unsigned int i = 0; i < p_count; i++)
+    {
+        p_lengths[i] = br->ReadUInt32();
+        p_lengths[i] = FLIP_INT32(p_lengths[i]);
+
+        if (p_lengths[i] != 262)
+        {
+            pos = br->BaseStream->Position;
+            br->Close();
+            throw gcnew FormatException("Incorrect length of table " + (i + 1) + "! Byte: " + p_lengths[i]);
+
+        }
+    }
+    br->Close();
+
+    this->reInitValues(fName, p_count, p_lengths);// values verified - accept them
+}
+
 void FManager::FileManager::writeCT(BinaryWriter^ bw, array<Byte>^ bytes)
 {// write uqm .ct file
     bool isPlanet = false;
@@ -458,6 +519,12 @@ void FManager::FileManager::checkFileFormat(String^ fname)
             this->checkACT(fname);
             break;
         }
+        case XLT_SIGNATURE:
+        {
+            fileType = XLT_FILE;
+            this->checkXLT(fname);
+            break;
+        }
         default:
             throw gcnew FormatException("Unknonw file format!");
     }   
@@ -520,6 +587,19 @@ array<Byte>^ FManager::FileManager::extractColorBytes(void)
         {
             br->BaseStream->Position = 0;
             length = paletteLengths[0] * BYTES_PER_COLOR;           
+
+            cBytes = gcnew array<Byte>(length);
+
+            for (int i = 0; i < length; i++)
+                cBytes[i] = br->ReadByte();
+
+            br->Close();
+            break;
+        }
+        case XLT_FILE:
+        {
+            br->BaseStream->Position = CT_TECH_BYTE_LENGTH + paletteCount + 6;
+            length = 256;
 
             cBytes = gcnew array<Byte>(length);
 

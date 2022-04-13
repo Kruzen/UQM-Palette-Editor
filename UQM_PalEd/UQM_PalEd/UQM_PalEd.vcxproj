@@ -135,6 +135,7 @@
     <ClCompile Include="GenPlanet.cpp" />
     <ClCompile Include="MainForm.cpp" />
     <ClCompile Include="Palette.cpp" />
+    <ClCompile Include="PlanetSide.cpp" />
     <ClCompile Include="RandomUQM.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -150,6 +151,9 @@
     </ClInclude>
     <ClInclude Include="Palette.h" />
     <ClInclude Include="Plandata.h" />
+    <ClInclude Include="PlanetSide.h">
+      <FileType>CppForm</FileType>
+    </ClInclude>
     <ClInclude Include="RandomUQM.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>
@@ -159,6 +163,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="MainForm.resx">
       <DependentUpon>MainForm.h</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="PlanetSide.resx">
+      <DependentUpon>PlanetSide.h</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>

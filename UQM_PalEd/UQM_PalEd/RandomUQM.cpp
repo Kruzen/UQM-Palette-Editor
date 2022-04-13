@@ -25,15 +25,17 @@
 
 #include "RandomUQM.h"
 #include <cstdlib>
+#include <time.h>
 
 RandomUQM::RandomUQM(void)
 {
-	seed = std::rand();
+	srand(time(NULL));
+	this->seed = std::rand();
 }
 
 RandomUQM::RandomUQM(int value)
 {
-	seed = value;
+	this->seed = value;
 }
 
 RandomUQM::~RandomUQM(void)
@@ -43,7 +45,7 @@ RandomUQM::~RandomUQM(void)
 
 int RandomUQM::getUQMRandomValue(void)
 {
-	if ((seed = A * (seed % Q) - R * (seed / Q)) > M)
+	if ((seed = A * (seed % Q) - D * (seed / Q)) > M)
 		return (seed -= M);
 	else if (seed)
 		return (seed);

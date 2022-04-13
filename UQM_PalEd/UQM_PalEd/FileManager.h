@@ -37,6 +37,7 @@ namespace FManager
 		void checkCT(String^ fName);
 		void checkRIFF(String^ fName);
 		void checkACT(String^ fName);
+		void checkXLT(String^ fName);
 		void writeCT(BinaryWriter^ bw, array<Byte>^ bytes);
 		void writeRIFF(BinaryWriter^ bw, array<Byte>^ bytes);
 		void writeACT(BinaryWriter^ bw, array<Byte>^ bytes);

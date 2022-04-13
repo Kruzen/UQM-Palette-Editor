@@ -18,7 +18,7 @@
 #include <cstring>
 
 
-void GenPlanet::deltaTopography(int num_iterations, char* depthArray, RECT* pRect, int depth_delta)
+void GenPlanet::deltaTopography(int num_iterations, char* depthArray, RECT_UQM* pRect, int depth_delta)
 {// based of UQM source code
 	short width, height, delta_y;
 	struct
@@ -204,8 +204,8 @@ void GenPlanet::deltaTopography(int num_iterations, char* depthArray, RECT* pRec
 void GenPlanet::ditherMap(char* depthArray, short width, short height)
 {// based of UQM source code
 	int i;
-	char* elev;
 	int rand_val = 0;
+	char* elev;
 
 	for (i = 0, elev = depthArray; i < (int)(width * height); ++i, ++elev)
 	{
@@ -272,7 +272,7 @@ void GenPlanet::validateMap(char* depthArray, short width, short height)
 	} while (--i);
 }
 
-void GenPlanet::makeCrater(RECT* pRect, char* depthArray, short rim_delta, short crater_delta, bool SetDepth, unsigned short width)
+void GenPlanet::makeCrater(RECT_UQM* pRect, char* depthArray, short rim_delta, short crater_delta, bool SetDepth, unsigned short width)
 {// based of UQM source code
 	short x, y, lf_x, rt_x;
 	short a, b;
@@ -305,12 +305,12 @@ void GenPlanet::makeCrater(RECT* pRect, char* depthArray, short rim_delta, short
 	{
 		if (d > 0)
 		{
-			lf_x = A - x;
-			rt_x = A + x;
+			lf_x = a - x;
+			rt_x = a + x;
 			if (SetDepth)
 			{
-				std::memset(&depthArray[TopIndex + lf_x], 0, rt_x - lf_x + 1);
-				std::memset(&depthArray[BotIndex + lf_x], 0, rt_x - lf_x + 1);
+				std::memset(&depthArray[TopIndex + lf_x], 0, sizeof(char)*(rt_x - lf_x + 1));
+				std::memset(&depthArray[BotIndex + lf_x], 0, sizeof(char)*(rt_x - lf_x + 1));
 			}
 			if (lf_x == rt_x)
 			{
@@ -367,12 +367,12 @@ void GenPlanet::makeCrater(RECT* pRect, char* depthArray, short rim_delta, short
 
 	while (y > 0)
 	{
-		lf_x = A - x;
-		rt_x = A + x;
+		lf_x = a - x;
+		rt_x = a + x;
 		if (SetDepth)
 		{
-			std::memset(&depthArray[TopIndex + lf_x], 0, rt_x - lf_x + 1);
-			std::memset(&depthArray[BotIndex + lf_x], 0, rt_x - lf_x + 1);
+			std::memset(&depthArray[TopIndex + lf_x], 0, sizeof(char)*(rt_x - lf_x + 1));
+			std::memset(&depthArray[BotIndex + lf_x], 0, sizeof(char)*(rt_x - lf_x + 1));
 		}
 		if (lf_x == rt_x)
 		{
@@ -426,10 +426,10 @@ void GenPlanet::makeCrater(RECT* pRect, char* depthArray, short rim_delta, short
 		d += Asquared - dy;
 	}
 
-	lf_x = A - x;
-	rt_x = A + x;
+	lf_x = a - x;
+	rt_x = a + x;
 	if (SetDepth)
-		std::memset(&depthArray[TopIndex + lf_x], 0, rt_x - lf_x + 1);
+		std::memset(&depthArray[TopIndex + lf_x], 0, sizeof(char)*(rt_x - lf_x + 1));
 	if (lf_x == rt_x)
 	{
 		depthArray[TopIndex + lf_x] += rim_delta;
@@ -463,8 +463,8 @@ void GenPlanet::makeCrater(RECT* pRect, char* depthArray, short rim_delta, short
 void GenPlanet::makeStorms(short storm_count, char* depthArray, short width, short height)
 {// based of UQM source code 
 	short i;
-	RECT storm_r[MAX_STORMS];
-	RECT* pstorm_r;
+	RECT_UQM storm_r[MAX_STORMS];
+	RECT_UQM* pstorm_r;
 
 	pstorm_r = &storm_r[i = storm_count];
 	while (i--)
@@ -587,7 +587,7 @@ void GenPlanet::makeStorms(short storm_count, char* depthArray, short width, sho
 	}
 }
 
-void GenPlanet::makeGasGiant(short num_bands, char* depthArray, RECT* pRect, short depth_delta)
+void GenPlanet::makeGasGiant(short num_bands, char* depthArray, RECT_UQM* pRect, short depth_delta)
 {// based of UQM source code
 	short last_y, next_y;
 	short band_error, band_bump, band_delta;
@@ -623,7 +623,7 @@ void GenPlanet::makeGasGiant(short num_bands, char* depthArray, RECT* pRect, sho
 			cur_y = pRect->height;
 		else
 		{
-			RECT r;
+			RECT_UQM r;
 
 			cur_y = next_y
 				+ ((band_height - 2) >> 1)
@@ -662,6 +662,11 @@ GenPlanet::GenPlanet(void)
 	r = new RandomUQM();
 }
 
+GenPlanet::GenPlanet(int r)
+{
+	this->r = new RandomUQM(r);
+}
+
 GenPlanet::~GenPlanet(void)
 {
 	delete r;
@@ -669,15 +674,16 @@ GenPlanet::~GenPlanet(void)
 
 void GenPlanet::generatePlanetSurface(char* depthArray, TopoFrame* desc)
 {// based of UQM source code
-	RECT rect;
+	RECT_UQM rect;
 	int i, y;
-	int width = MAP_WIDTH << HD_FACTOR;
-	int height = MAP_HEIGHT << HD_FACTOR;	
+	int width = 840;
+	int height = 268;
 
 	rect.x = rect.y = 0;
 	rect.width = width;
 	rect.height = height;
 	{
+		//std::memset(depthArray, 0, width * height);
 		switch (desc->algo)
 		{
 		case GAS_GIANT_ALGO:
@@ -693,7 +699,7 @@ void GenPlanet::generatePlanetSurface(char* depthArray, TopoFrame* desc)
 
 			for (i = 0; i < desc->num_blemishes; ++i)
 			{
-				RECT crater_r;
+				RECT_UQM crater_r;
 				unsigned int loword;
 
 				loword = LOWORD(r->getUQMRandomValue());
@@ -732,12 +738,12 @@ void GenPlanet::generatePlanetSurface(char* depthArray, TopoFrame* desc)
 						- crater_r.height);
 
 				crater_r.width = crater_r.width
-					* height / MAP_HEIGHT;
+					* (height / MAP_HEIGHT);
 				crater_r.height = crater_r.width;
 				crater_r.x = crater_r.x
-					* width / MAP_WIDTH;
+					* (width / MAP_WIDTH);
 				crater_r.y = crater_r.y
-					* height / MAP_HEIGHT;
+					* (height / MAP_HEIGHT);
 
 				this->makeCrater(&crater_r, depthArray,
 					desc->fault_depth << 2,

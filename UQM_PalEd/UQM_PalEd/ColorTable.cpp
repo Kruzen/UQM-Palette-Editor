@@ -244,6 +244,11 @@ Color CTable::ColorTable::getColorFromPalette(int p_index, int s_index, int c_in
     return palettes[p_index]->getColorFromSegment(s_index, c_index);
 }
 
+Color CTable::ColorTable::getColorFromPPalette(int p_index, int s_index, int c_index)
+{
+    return palettes[p_index]->getColorFromPSegment(s_index, c_index);
+}
+
 void CTable::ColorTable::setColorFromPalette(int p_index, int s_index, int c_index, Color c)
 {
     palettes[p_index]->setColorFromSegment(s_index, c_index, c);

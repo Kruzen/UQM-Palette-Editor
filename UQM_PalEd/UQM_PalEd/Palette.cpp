@@ -129,6 +129,13 @@ Color CPalette::Segment::getColor(int c_index)
 
 	return colors[c_index];
 }
+Color CPalette::Segment::getPColor(int c_index)
+{
+	if (c_index < 0 || c_index > length || !p_colors)
+		return colors[0];
+
+	return p_colors[c_index];
+}
 void CPalette::Segment::setColor(int c_index, Color c)
 {
 	if (c_index < 0 || c_index > length)
@@ -270,6 +277,10 @@ array<Color>^ CPalette::Palette::returnSeg(int index, bool isPlanet)
 Color CPalette::Palette::getColorFromSegment(int s_index, int c_index)
 {
 	return seg[s_index]->getColor(c_index);
+}
+Color CPalette::Palette::getColorFromPSegment(int s_index, int c_index)
+{
+	return seg[s_index]->getPColor(c_index);
 }
 void CPalette::Palette::setColorFromSegment(int s_index, int c_index, Color c)
 {

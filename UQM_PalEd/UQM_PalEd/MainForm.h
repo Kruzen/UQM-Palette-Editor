@@ -58,11 +58,39 @@ namespace UQMPalEd {
 		ColorTable^ ct;
 		String^ fileName;
 		bool modified;
+		array<Byte>^ xlt;
 	private: System::Windows::Forms::OpenFileDialog^ importFileDialog;
 	private: System::Windows::Forms::SaveFileDialog^ saveFileDialog;
 	public:
 		Bitmap^ background;
 	private: System::Windows::Forms::ColorDialog^ colorDialog;
+	private: System::Windows::Forms::GroupBox^ genPlanet;
+	private: System::Windows::Forms::Label^ genLabel1;
+	private: System::Windows::Forms::TextBox^ gpFaults;
+
+
+
+
+	private: System::Windows::Forms::Label^ genLabel4;
+	private: System::Windows::Forms::TextBox^ gpElev;
+
+
+	private: System::Windows::Forms::Label^ genLabel3;
+	private: System::Windows::Forms::TextBox^ gpBlem;
+
+
+	private: System::Windows::Forms::Label^ genLabel2;
+	private: System::Windows::Forms::TextBox^ gpDepth;
+
+	private: System::Windows::Forms::Button^ genButton;
+	private: System::Windows::Forms::Button^ load_xltButton;
+	private: System::Windows::Forms::ComboBox^ algoChooser;
+	private: System::Windows::Forms::Label^ algoLabel;
+	private: System::Windows::Forms::Label^ seedLabel;
+	private: System::Windows::Forms::TextBox^ seedInput;
+	private: System::Windows::Forms::Label^ presetLabel;
+	private: System::Windows::Forms::ComboBox^ presetBox;
+
 	public:
 
 	public:
@@ -181,11 +209,29 @@ namespace UQMPalEd {
 			this->importFileDialog = (gcnew System::Windows::Forms::OpenFileDialog());
 			this->saveFileDialog = (gcnew System::Windows::Forms::SaveFileDialog());
 			this->colorDialog = (gcnew System::Windows::Forms::ColorDialog());
+			this->genPlanet = (gcnew System::Windows::Forms::GroupBox());
+			this->presetLabel = (gcnew System::Windows::Forms::Label());
+			this->presetBox = (gcnew System::Windows::Forms::ComboBox());
+			this->algoLabel = (gcnew System::Windows::Forms::Label());
+			this->seedLabel = (gcnew System::Windows::Forms::Label());
+			this->seedInput = (gcnew System::Windows::Forms::TextBox());
+			this->algoChooser = (gcnew System::Windows::Forms::ComboBox());
+			this->load_xltButton = (gcnew System::Windows::Forms::Button());
+			this->genButton = (gcnew System::Windows::Forms::Button());
+			this->genLabel4 = (gcnew System::Windows::Forms::Label());
+			this->gpElev = (gcnew System::Windows::Forms::TextBox());
+			this->genLabel3 = (gcnew System::Windows::Forms::Label());
+			this->gpBlem = (gcnew System::Windows::Forms::TextBox());
+			this->genLabel2 = (gcnew System::Windows::Forms::Label());
+			this->gpDepth = (gcnew System::Windows::Forms::TextBox());
+			this->genLabel1 = (gcnew System::Windows::Forms::Label());
+			this->gpFaults = (gcnew System::Windows::Forms::TextBox());
 			this->menuStrip->SuspendLayout();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->tableViewer))->BeginInit();
 			this->controlPanel->SuspendLayout();
 			this->brushBox->SuspendLayout();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->brushColorView))->BeginInit();
+			this->genPlanet->SuspendLayout();
 			this->SuspendLayout();
 			// 
 			// openFileDialog
@@ -563,12 +609,186 @@ namespace UQMPalEd {
 			// 
 			this->importFileDialog->FileName = L"openFileDialog1";
 			// 
+			// genPlanet
+			// 
+			this->genPlanet->BackColor = System::Drawing::SystemColors::ActiveCaption;
+			this->genPlanet->Controls->Add(this->presetLabel);
+			this->genPlanet->Controls->Add(this->presetBox);
+			this->genPlanet->Controls->Add(this->algoLabel);
+			this->genPlanet->Controls->Add(this->seedLabel);
+			this->genPlanet->Controls->Add(this->seedInput);
+			this->genPlanet->Controls->Add(this->algoChooser);
+			this->genPlanet->Controls->Add(this->load_xltButton);
+			this->genPlanet->Controls->Add(this->genButton);
+			this->genPlanet->Controls->Add(this->genLabel4);
+			this->genPlanet->Controls->Add(this->gpElev);
+			this->genPlanet->Controls->Add(this->genLabel3);
+			this->genPlanet->Controls->Add(this->gpBlem);
+			this->genPlanet->Controls->Add(this->genLabel2);
+			this->genPlanet->Controls->Add(this->gpDepth);
+			this->genPlanet->Controls->Add(this->genLabel1);
+			this->genPlanet->Controls->Add(this->gpFaults);
+			this->genPlanet->Enabled = false;
+			this->genPlanet->Location = System::Drawing::Point(339, 28);
+			this->genPlanet->Name = L"genPlanet";
+			this->genPlanet->Size = System::Drawing::Size(273, 187);
+			this->genPlanet->TabIndex = 11;
+			this->genPlanet->TabStop = false;
+			this->genPlanet->Text = L"Generate planet side";
+			// 
+			// presetLabel
+			// 
+			this->presetLabel->AutoSize = true;
+			this->presetLabel->Location = System::Drawing::Point(25, 131);
+			this->presetLabel->Name = L"presetLabel";
+			this->presetLabel->Size = System::Drawing::Size(37, 13);
+			this->presetLabel->TabIndex = 15;
+			this->presetLabel->Text = L"Preset";
+			// 
+			// presetBox
+			// 
+			this->presetBox->FormattingEnabled = true;
+			this->presetBox->Location = System::Drawing::Point(72, 128);
+			this->presetBox->Name = L"presetBox";
+			this->presetBox->Size = System::Drawing::Size(107, 21);
+			this->presetBox->TabIndex = 7;
+			this->presetBox->SelectedIndexChanged += gcnew System::EventHandler(this, &MainForm::presetBox_SelectedIndexChanged);
+			// 
+			// algoLabel
+			// 
+			this->algoLabel->AutoSize = true;
+			this->algoLabel->Location = System::Drawing::Point(129, 55);
+			this->algoLabel->Name = L"algoLabel";
+			this->algoLabel->Size = System::Drawing::Size(50, 13);
+			this->algoLabel->TabIndex = 13;
+			this->algoLabel->Text = L"Algorithm";
+			// 
+			// seedLabel
+			// 
+			this->seedLabel->AutoSize = true;
+			this->seedLabel->Location = System::Drawing::Point(129, 27);
+			this->seedLabel->Name = L"seedLabel";
+			this->seedLabel->Size = System::Drawing::Size(32, 13);
+			this->seedLabel->TabIndex = 12;
+			this->seedLabel->Text = L"Seed";
+			// 
+			// seedInput
+			// 
+			this->seedInput->Location = System::Drawing::Point(167, 24);
+			this->seedInput->MaxLength = 10;
+			this->seedInput->Name = L"seedInput";
+			this->seedInput->Size = System::Drawing::Size(100, 20);
+			this->seedInput->TabIndex = 4;
+			this->seedInput->KeyPress += gcnew System::Windows::Forms::KeyPressEventHandler(this, &MainForm::gpInput_KeyPress);
+			// 
+			// algoChooser
+			// 
+			this->algoChooser->FormattingEnabled = true;
+			this->algoChooser->Location = System::Drawing::Point(188, 52);
+			this->algoChooser->Name = L"algoChooser";
+			this->algoChooser->Size = System::Drawing::Size(79, 21);
+			this->algoChooser->TabIndex = 5;
+			// 
+			// load_xltButton
+			// 
+			this->load_xltButton->Location = System::Drawing::Point(132, 99);
+			this->load_xltButton->Name = L"load_xltButton";
+			this->load_xltButton->Size = System::Drawing::Size(135, 23);
+			this->load_xltButton->TabIndex = 6;
+			this->load_xltButton->Text = L"Load translate table";
+			this->load_xltButton->UseVisualStyleBackColor = true;
+			this->load_xltButton->Click += gcnew System::EventHandler(this, &MainForm::load_xltButton_Click);
+			// 
+			// genButton
+			// 
+			this->genButton->Enabled = false;
+			this->genButton->Location = System::Drawing::Point(101, 158);
+			this->genButton->Name = L"genButton";
+			this->genButton->Size = System::Drawing::Size(75, 23);
+			this->genButton->TabIndex = 8;
+			this->genButton->Text = L"Generate";
+			this->genButton->UseVisualStyleBackColor = true;
+			this->genButton->Click += gcnew System::EventHandler(this, &MainForm::genButton_Click);
+			// 
+			// genLabel4
+			// 
+			this->genLabel4->AutoSize = true;
+			this->genLabel4->Location = System::Drawing::Point(12, 104);
+			this->genLabel4->Name = L"genLabel4";
+			this->genLabel4->Size = System::Drawing::Size(54, 13);
+			this->genLabel4->TabIndex = 7;
+			this->genLabel4->Text = L"Base elev";
+			// 
+			// gpElev
+			// 
+			this->gpElev->Location = System::Drawing::Point(72, 101);
+			this->gpElev->MaxLength = 3;
+			this->gpElev->Name = L"gpElev";
+			this->gpElev->Size = System::Drawing::Size(34, 20);
+			this->gpElev->TabIndex = 3;
+			this->gpElev->KeyPress += gcnew System::Windows::Forms::KeyPressEventHandler(this, &MainForm::gpInput_KeyPress);
+			// 
+			// genLabel3
+			// 
+			this->genLabel3->AutoSize = true;
+			this->genLabel3->Location = System::Drawing::Point(12, 78);
+			this->genLabel3->Name = L"genLabel3";
+			this->genLabel3->Size = System::Drawing::Size(54, 13);
+			this->genLabel3->TabIndex = 5;
+			this->genLabel3->Text = L"Blemishes";
+			// 
+			// gpBlem
+			// 
+			this->gpBlem->Location = System::Drawing::Point(72, 75);
+			this->gpBlem->MaxLength = 3;
+			this->gpBlem->Name = L"gpBlem";
+			this->gpBlem->Size = System::Drawing::Size(34, 20);
+			this->gpBlem->TabIndex = 2;
+			this->gpBlem->KeyPress += gcnew System::Windows::Forms::KeyPressEventHandler(this, &MainForm::gpInput_KeyPress);
+			// 
+			// genLabel2
+			// 
+			this->genLabel2->AutoSize = true;
+			this->genLabel2->Location = System::Drawing::Point(25, 52);
+			this->genLabel2->Name = L"genLabel2";
+			this->genLabel2->Size = System::Drawing::Size(41, 13);
+			this->genLabel2->TabIndex = 3;
+			this->genLabel2->Text = L"Depths";
+			// 
+			// gpDepth
+			// 
+			this->gpDepth->Location = System::Drawing::Point(72, 49);
+			this->gpDepth->MaxLength = 3;
+			this->gpDepth->Name = L"gpDepth";
+			this->gpDepth->Size = System::Drawing::Size(34, 20);
+			this->gpDepth->TabIndex = 1;
+			this->gpDepth->KeyPress += gcnew System::Windows::Forms::KeyPressEventHandler(this, &MainForm::gpInput_KeyPress);
+			// 
+			// genLabel1
+			// 
+			this->genLabel1->AutoSize = true;
+			this->genLabel1->Location = System::Drawing::Point(31, 27);
+			this->genLabel1->Name = L"genLabel1";
+			this->genLabel1->Size = System::Drawing::Size(35, 13);
+			this->genLabel1->TabIndex = 1;
+			this->genLabel1->Text = L"Faults";
+			// 
+			// gpFaults
+			// 
+			this->gpFaults->Location = System::Drawing::Point(72, 24);
+			this->gpFaults->MaxLength = 3;
+			this->gpFaults->Name = L"gpFaults";
+			this->gpFaults->Size = System::Drawing::Size(34, 20);
+			this->gpFaults->TabIndex = 0;
+			this->gpFaults->KeyPress += gcnew System::Windows::Forms::KeyPressEventHandler(this, &MainForm::gpInput_KeyPress);
+			// 
 			// MainForm
 			// 
 			this->AutoScaleDimensions = System::Drawing::SizeF(6, 13);
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
 			this->BackColor = System::Drawing::SystemColors::ActiveBorder;
 			this->ClientSize = System::Drawing::Size(624, 461);
+			this->Controls->Add(this->genPlanet);
 			this->Controls->Add(this->brushBox);
 			this->Controls->Add(this->controlPanel);
 			this->Controls->Add(this->tableViewer);
@@ -583,7 +803,7 @@ namespace UQMPalEd {
 			this->MinimumSize = System::Drawing::Size(640, 500);
 			this->Name = L"MainForm";
 			this->StartPosition = System::Windows::Forms::FormStartPosition::CenterScreen;
-			this->Text = L"Ur-Quan Masters Palette Editor v0.1.2";
+			this->Text = L"Ur-Quan Masters Palette Editor v0.1.5";
 			this->MouseClick += gcnew System::Windows::Forms::MouseEventHandler(this, &MainForm::MainForm_MouseClick);
 			this->menuStrip->ResumeLayout(false);
 			this->menuStrip->PerformLayout();
@@ -593,6 +813,8 @@ namespace UQMPalEd {
 			this->brushBox->ResumeLayout(false);
 			this->brushBox->PerformLayout();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->brushColorView))->EndInit();
+			this->genPlanet->ResumeLayout(false);
+			this->genPlanet->PerformLayout();
 			this->ResumeLayout(false);
 			this->PerformLayout();
 
@@ -614,5 +836,9 @@ namespace UQMPalEd {
 	private: System::Void MainForm_MouseClick(System::Object^ sender, System::Windows::Forms::MouseEventArgs^ e);
 	private: System::Void saveAsToolStripMenuItem_Click(System::Object^ sender, System::EventArgs^ e);
 	private: System::Void tableViewer_DoubleClick(System::Object^ sender, System::EventArgs^ e);
+	private: System::Void genButton_Click(System::Object^ sender, System::EventArgs^ e);
+	private: System::Void load_xltButton_Click(System::Object^ sender, System::EventArgs^ e);
+	private: System::Void presetBox_SelectedIndexChanged(System::Object^ sender, System::EventArgs^ e);
+	private: System::Void gpInput_KeyPress(System::Object^ sender, System::Windows::Forms::KeyPressEventArgs^ e);
 };
 }

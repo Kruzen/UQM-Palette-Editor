@@ -50,6 +50,7 @@ namespace CTable
 		bool getPlanetCond(int p_index);
 		array<int>^ getPaletteLengths(void);
 		Color getColorFromPalette(int p_index, int s_index, int c_index);
+		Color getColorFromPPalette(int p_index, int s_index, int c_index);
 		void setColorFromPalette(int p_index, int s_index, int c_index, Color c);
 		int getPaletteColorCount(int p_index);
 		int getSegmentColorCount(int p_index, int s_index);
