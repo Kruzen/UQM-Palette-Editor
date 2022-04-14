@@ -30,11 +30,10 @@ class GenPlanet
 private:
 	RandomUQM* r;
 private:
-	void deltaTopography(int num_iterations, char* depthArray, RECT_UQM* pRect, int depth_delta);
-	//array<char>^ deltaTopography(int num_iterations, array<char>^ depthArray, RECT_UQM* pRect, int depth_delta);
+	void deltaTopography(short num_iterations, char* depthArray, RECT_UQM* pRect, short depth_delta);
 	void ditherMap(char* depthArray, short width, short height);
-	//char* ditherMap(char depthArray[], short width, short height);
 	void validateMap(char* depthArray, short width, short height);
+	void handleImpurities(char* depthArray, short width, short height, bool gas);
 	void makeCrater(RECT_UQM* pRect, char* depthArray, short rim_delta, short crater_delta, bool SetDepth, unsigned short width);
 	void makeStorms(short storm_count, char* depthArray, short width, short height);
 	void makeGasGiant(short num_bands, char* depthArray, RECT_UQM* pRect, short depth_delta);

@@ -37,7 +37,7 @@
       <Filter>Исходные файлы</Filter>
     </ClCompile>
     <ClCompile Include="PlanetSide.cpp">
-      <Filter>Файлы заголовков</Filter>
+      <Filter>Исходные файлы</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

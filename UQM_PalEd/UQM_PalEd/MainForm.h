@@ -90,6 +90,8 @@ namespace UQMPalEd {
 	private: System::Windows::Forms::TextBox^ seedInput;
 	private: System::Windows::Forms::Label^ presetLabel;
 	private: System::Windows::Forms::ComboBox^ presetBox;
+	private: System::Windows::Forms::Label^ xltPresetLabel;
+	private: System::Windows::Forms::ComboBox^ xltPresetBox;
 
 	public:
 
@@ -210,6 +212,8 @@ namespace UQMPalEd {
 			this->saveFileDialog = (gcnew System::Windows::Forms::SaveFileDialog());
 			this->colorDialog = (gcnew System::Windows::Forms::ColorDialog());
 			this->genPlanet = (gcnew System::Windows::Forms::GroupBox());
+			this->xltPresetLabel = (gcnew System::Windows::Forms::Label());
+			this->xltPresetBox = (gcnew System::Windows::Forms::ComboBox());
 			this->presetLabel = (gcnew System::Windows::Forms::Label());
 			this->presetBox = (gcnew System::Windows::Forms::ComboBox());
 			this->algoLabel = (gcnew System::Windows::Forms::Label());
@@ -324,7 +328,7 @@ namespace UQMPalEd {
 			// debug
 			// 
 			this->debug->Enabled = false;
-			this->debug->Location = System::Drawing::Point(559, 234);
+			this->debug->Location = System::Drawing::Point(559, 331);
 			this->debug->Name = L"debug";
 			this->debug->Size = System::Drawing::Size(53, 88);
 			this->debug->TabIndex = 2;
@@ -334,7 +338,7 @@ namespace UQMPalEd {
 			// debug_title
 			// 
 			this->debug_title->AutoSize = true;
-			this->debug_title->Location = System::Drawing::Point(556, 218);
+			this->debug_title->Location = System::Drawing::Point(556, 315);
 			this->debug_title->Name = L"debug_title";
 			this->debug_title->Size = System::Drawing::Size(39, 13);
 			this->debug_title->TabIndex = 3;
@@ -612,6 +616,8 @@ namespace UQMPalEd {
 			// genPlanet
 			// 
 			this->genPlanet->BackColor = System::Drawing::SystemColors::ActiveCaption;
+			this->genPlanet->Controls->Add(this->xltPresetLabel);
+			this->genPlanet->Controls->Add(this->xltPresetBox);
 			this->genPlanet->Controls->Add(this->presetLabel);
 			this->genPlanet->Controls->Add(this->presetBox);
 			this->genPlanet->Controls->Add(this->algoLabel);
@@ -631,26 +637,44 @@ namespace UQMPalEd {
 			this->genPlanet->Enabled = false;
 			this->genPlanet->Location = System::Drawing::Point(339, 28);
 			this->genPlanet->Name = L"genPlanet";
-			this->genPlanet->Size = System::Drawing::Size(273, 187);
+			this->genPlanet->Size = System::Drawing::Size(273, 212);
 			this->genPlanet->TabIndex = 11;
 			this->genPlanet->TabStop = false;
 			this->genPlanet->Text = L"Generate planet side";
 			// 
+			// xltPresetLabel
+			// 
+			this->xltPresetLabel->AutoSize = true;
+			this->xltPresetLabel->Location = System::Drawing::Point(25, 158);
+			this->xltPresetLabel->Name = L"xltPresetLabel";
+			this->xltPresetLabel->Size = System::Drawing::Size(51, 13);
+			this->xltPresetLabel->TabIndex = 17;
+			this->xltPresetLabel->Text = L"Xlt preset";
+			// 
+			// xltPresetBox
+			// 
+			this->xltPresetBox->FormattingEnabled = true;
+			this->xltPresetBox->Location = System::Drawing::Point(83, 155);
+			this->xltPresetBox->Name = L"xltPresetBox";
+			this->xltPresetBox->Size = System::Drawing::Size(142, 21);
+			this->xltPresetBox->TabIndex = 16;
+			this->xltPresetBox->SelectedIndexChanged += gcnew System::EventHandler(this, &MainForm::xltPresetBox_SelectedIndexChanged);
+			// 
 			// presetLabel
 			// 
 			this->presetLabel->AutoSize = true;
-			this->presetLabel->Location = System::Drawing::Point(25, 131);
+			this->presetLabel->Location = System::Drawing::Point(8, 131);
 			this->presetLabel->Name = L"presetLabel";
-			this->presetLabel->Size = System::Drawing::Size(37, 13);
+			this->presetLabel->Size = System::Drawing::Size(69, 13);
 			this->presetLabel->TabIndex = 15;
-			this->presetLabel->Text = L"Preset";
+			this->presetLabel->Text = L"Planet preset";
 			// 
 			// presetBox
 			// 
 			this->presetBox->FormattingEnabled = true;
-			this->presetBox->Location = System::Drawing::Point(72, 128);
+			this->presetBox->Location = System::Drawing::Point(83, 128);
 			this->presetBox->Name = L"presetBox";
-			this->presetBox->Size = System::Drawing::Size(107, 21);
+			this->presetBox->Size = System::Drawing::Size(142, 21);
 			this->presetBox->TabIndex = 7;
 			this->presetBox->SelectedIndexChanged += gcnew System::EventHandler(this, &MainForm::presetBox_SelectedIndexChanged);
 			// 
@@ -679,7 +703,7 @@ namespace UQMPalEd {
 			this->seedInput->Name = L"seedInput";
 			this->seedInput->Size = System::Drawing::Size(100, 20);
 			this->seedInput->TabIndex = 4;
-			this->seedInput->KeyPress += gcnew System::Windows::Forms::KeyPressEventHandler(this, &MainForm::gpInput_KeyPress);
+			this->seedInput->KeyPress += gcnew System::Windows::Forms::KeyPressEventHandler(this, &MainForm::seedInput_KeyPress);
 			// 
 			// algoChooser
 			// 
@@ -702,9 +726,9 @@ namespace UQMPalEd {
 			// genButton
 			// 
 			this->genButton->Enabled = false;
-			this->genButton->Location = System::Drawing::Point(101, 158);
+			this->genButton->Location = System::Drawing::Point(95, 182);
 			this->genButton->Name = L"genButton";
-			this->genButton->Size = System::Drawing::Size(75, 23);
+			this->genButton->Size = System::Drawing::Size(84, 23);
 			this->genButton->TabIndex = 8;
 			this->genButton->Text = L"Generate";
 			this->genButton->UseVisualStyleBackColor = true;
@@ -713,7 +737,7 @@ namespace UQMPalEd {
 			// genLabel4
 			// 
 			this->genLabel4->AutoSize = true;
-			this->genLabel4->Location = System::Drawing::Point(12, 104);
+			this->genLabel4->Location = System::Drawing::Point(6, 104);
 			this->genLabel4->Name = L"genLabel4";
 			this->genLabel4->Size = System::Drawing::Size(54, 13);
 			this->genLabel4->TabIndex = 7;
@@ -721,7 +745,7 @@ namespace UQMPalEd {
 			// 
 			// gpElev
 			// 
-			this->gpElev->Location = System::Drawing::Point(72, 101);
+			this->gpElev->Location = System::Drawing::Point(66, 101);
 			this->gpElev->MaxLength = 3;
 			this->gpElev->Name = L"gpElev";
 			this->gpElev->Size = System::Drawing::Size(34, 20);
@@ -731,7 +755,7 @@ namespace UQMPalEd {
 			// genLabel3
 			// 
 			this->genLabel3->AutoSize = true;
-			this->genLabel3->Location = System::Drawing::Point(12, 78);
+			this->genLabel3->Location = System::Drawing::Point(6, 78);
 			this->genLabel3->Name = L"genLabel3";
 			this->genLabel3->Size = System::Drawing::Size(54, 13);
 			this->genLabel3->TabIndex = 5;
@@ -739,7 +763,7 @@ namespace UQMPalEd {
 			// 
 			// gpBlem
 			// 
-			this->gpBlem->Location = System::Drawing::Point(72, 75);
+			this->gpBlem->Location = System::Drawing::Point(66, 75);
 			this->gpBlem->MaxLength = 3;
 			this->gpBlem->Name = L"gpBlem";
 			this->gpBlem->Size = System::Drawing::Size(34, 20);
@@ -749,7 +773,7 @@ namespace UQMPalEd {
 			// genLabel2
 			// 
 			this->genLabel2->AutoSize = true;
-			this->genLabel2->Location = System::Drawing::Point(25, 52);
+			this->genLabel2->Location = System::Drawing::Point(19, 52);
 			this->genLabel2->Name = L"genLabel2";
 			this->genLabel2->Size = System::Drawing::Size(41, 13);
 			this->genLabel2->TabIndex = 3;
@@ -757,7 +781,7 @@ namespace UQMPalEd {
 			// 
 			// gpDepth
 			// 
-			this->gpDepth->Location = System::Drawing::Point(72, 49);
+			this->gpDepth->Location = System::Drawing::Point(66, 49);
 			this->gpDepth->MaxLength = 3;
 			this->gpDepth->Name = L"gpDepth";
 			this->gpDepth->Size = System::Drawing::Size(34, 20);
@@ -767,7 +791,7 @@ namespace UQMPalEd {
 			// genLabel1
 			// 
 			this->genLabel1->AutoSize = true;
-			this->genLabel1->Location = System::Drawing::Point(31, 27);
+			this->genLabel1->Location = System::Drawing::Point(25, 27);
 			this->genLabel1->Name = L"genLabel1";
 			this->genLabel1->Size = System::Drawing::Size(35, 13);
 			this->genLabel1->TabIndex = 1;
@@ -775,7 +799,7 @@ namespace UQMPalEd {
 			// 
 			// gpFaults
 			// 
-			this->gpFaults->Location = System::Drawing::Point(72, 24);
+			this->gpFaults->Location = System::Drawing::Point(66, 24);
 			this->gpFaults->MaxLength = 3;
 			this->gpFaults->Name = L"gpFaults";
 			this->gpFaults->Size = System::Drawing::Size(34, 20);
@@ -803,7 +827,7 @@ namespace UQMPalEd {
 			this->MinimumSize = System::Drawing::Size(640, 500);
 			this->Name = L"MainForm";
 			this->StartPosition = System::Windows::Forms::FormStartPosition::CenterScreen;
-			this->Text = L"Ur-Quan Masters Palette Editor v0.1.5";
+			this->Text = L"Ur-Quan Masters Palette Editor v0.1.7";
 			this->MouseClick += gcnew System::Windows::Forms::MouseEventHandler(this, &MainForm::MainForm_MouseClick);
 			this->menuStrip->ResumeLayout(false);
 			this->menuStrip->PerformLayout();
@@ -840,5 +864,7 @@ namespace UQMPalEd {
 	private: System::Void load_xltButton_Click(System::Object^ sender, System::EventArgs^ e);
 	private: System::Void presetBox_SelectedIndexChanged(System::Object^ sender, System::EventArgs^ e);
 	private: System::Void gpInput_KeyPress(System::Object^ sender, System::Windows::Forms::KeyPressEventArgs^ e);
+	private: System::Void xltPresetBox_SelectedIndexChanged(System::Object^ sender, System::EventArgs^ e);
+	private: System::Void seedInput_KeyPress(System::Object^ sender, System::Windows::Forms::KeyPressEventArgs^ e);
 };
 }

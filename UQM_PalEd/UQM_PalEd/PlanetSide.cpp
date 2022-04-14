@@ -27,11 +27,12 @@ UQMPalEd::PlanetSide::PlanetSide(void)
 	}
 }
 
-UQMPalEd::PlanetSide::PlanetSide(System::Drawing::Bitmap^ bmp)
+UQMPalEd::PlanetSide::PlanetSide(System::Drawing::Bitmap^ bmp, String^ name)
 {
 	InitializeComponent();
 
 	planetSurface->Image = bmp;
+	this->Text += name;
 }
 
 System::Void UQMPalEd::PlanetSide::ok_button_Click(System::Object^ sender, System::EventArgs^ e)

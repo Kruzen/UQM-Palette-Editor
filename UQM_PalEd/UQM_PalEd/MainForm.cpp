@@ -75,6 +75,8 @@ UQMPalEd::MainForm::MainForm(void)
 	for (int i = 0; i <= NUMBER_OF_PLANET_TYPES; i++)
 		presetBox->Items->Add(gcnew String(planet_name_array[i].c_str()));
 
+	for (int i = 0; i <= NUMBERS_OF_XLTS; i++)
+		xltPresetBox->Items->Add(gcnew String(xlts_name_array[i].c_str()));
 	
 	//debug->Text += (158 % 210);
 }
@@ -625,8 +627,8 @@ System::Void UQMPalEd::MainForm::genButton_Click(System::Object^ sender, System:
 	if (!xlt || !ct)
 		return;
 
-	char* d = (char*)calloc(840 * 268, sizeof(char));
-	//char* dt = (char*)malloc(840*268 * sizeof(char));
+	//char* d = (char*)calloc(840 * 268, sizeof(char));
+	char* d = (char*)malloc(840*268);
 	GenPlanet* gp;
 	TopoFrame desc;
 	Bitmap^ tFrame = gcnew Bitmap(840, 268);
@@ -645,29 +647,31 @@ System::Void UQMPalEd::MainForm::genButton_Click(System::Object^ sender, System:
 		desc.num_blemishes = Convert::ToInt32(gpBlem->Text);
 		desc.base_elevation = Convert::ToInt32(gpElev->Text);
 
+		std::memset(d, 0, 840 * 268);
 		gp->generatePlanetSurface(d, &desc);
 		delete gp;
 
-		int c;
-		int a = 0;
-		for (int i = 0; i < 268; i++)
+		
+		short c;
+		char* pSrc = d;
+		for (short i = 0; i < 268; ++i)
 		{
-			for (int j = 0; j < 840; j++)
+			for (short j = 0; j < 840; ++j, ++pSrc)
 			{
+				c = *pSrc;
 				if (desc.algo == GAS_GIANT_ALGO)
 				{
-					c = d[a] & 0xFF;
+					c &= 0xFF;
 				}
 				else				
 				{
-					c = d[a] + desc.base_elevation;//(int)((float)(desc.base_elevation) * 1.3);
+					c += desc.base_elevation;//(int)((float)(desc.base_elevation) * 1.3);
 					if (c < 0)
 						c = 0;
 					if (c > 255)
 						c = 255;
 				}
 				tFrame->SetPixel(j, i, ct->getColorFromPPalette(t_displayed, s_displayed, xlt[c] - 128));
-				a++;
 			}			
 		}
 	}
@@ -676,7 +680,9 @@ System::Void UQMPalEd::MainForm::genButton_Click(System::Object^ sender, System:
 		this->invokeMessageBox(e->Message, true);
 	}
 	free(d);
-	PlanetSide^ ps = gcnew PlanetSide(tFrame);
+	String^ vals = "(" + desc.num_faults + "," + desc.fault_depth + "," + desc.num_blemishes + "," + desc.base_elevation + ")";
+	String^ name = ": " + Path::GetFileName(fileName) + " + " + load_xltButton->Text + vals;
+	PlanetSide^ ps = gcnew PlanetSide(tFrame, name);
 	ps->Show();
 //	
 }
@@ -717,11 +723,7 @@ System::Void UQMPalEd::MainForm::presetBox_SelectedIndexChanged(System::Object^ 
 {
 	if (presetBox->SelectedIndex != 0)
 	{
-		gpFaults->Text = planet_array[presetBox->SelectedIndex - 1].num_faults.ToString();
-		gpDepth->Text = planet_array[presetBox->SelectedIndex - 1].fault_depth.ToString();
-		gpBlem->Text = planet_array[presetBox->SelectedIndex - 1].num_blemishes.ToString();
-		gpElev->Text = planet_array[presetBox->SelectedIndex - 1].base_elevation.ToString();
-		algoChooser->SelectedIndex = planet_array[presetBox->SelectedIndex - 1].algo;
+		xltPresetBox->SelectedIndex = planet_array[presetBox->SelectedIndex - 1] + 1;
 	}
 }
 
@@ -732,4 +734,25 @@ System::Void UQMPalEd::MainForm::gpInput_KeyPress(System::Object^ sender, System
 
 	if (presetBox->SelectedIndex != 0)
 		presetBox->SelectedIndex = 0;
+
+	if (xltPresetBox->SelectedIndex != 0)
+		xltPresetBox->SelectedIndex = 0;
+}
+
+System::Void UQMPalEd::MainForm::xltPresetBox_SelectedIndexChanged(System::Object^ sender, System::EventArgs^ e)
+{
+	if (xltPresetBox->SelectedIndex != 0)
+	{
+		gpFaults->Text = xlat_tables[xltPresetBox->SelectedIndex - 1].num_faults.ToString();
+		gpDepth->Text = xlat_tables[xltPresetBox->SelectedIndex - 1].fault_depth.ToString();
+		gpBlem->Text = xlat_tables[xltPresetBox->SelectedIndex - 1].num_blemishes.ToString();
+		gpElev->Text = xlat_tables[xltPresetBox->SelectedIndex - 1].base_elevation.ToString();
+		algoChooser->SelectedIndex = xlat_tables[xltPresetBox->SelectedIndex - 1].algo;
+	}
+}
+
+System::Void UQMPalEd::MainForm::seedInput_KeyPress(System::Object^ sender, System::Windows::Forms::KeyPressEventArgs^ e)
+{
+	if (!Char::IsDigit(e->KeyChar) && !Char::IsControl(e->KeyChar))
+		e->Handled = true;
 }

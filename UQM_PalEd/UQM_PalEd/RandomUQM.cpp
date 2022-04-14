@@ -35,6 +35,10 @@ RandomUQM::RandomUQM(void)
 
 RandomUQM::RandomUQM(int value)
 {
+	if (value == 0L) /* 0 becomes 1 */
+		value = 1;
+	else if (value > M) /* and less than M */
+		value -= M;
 	this->seed = value;
 }
 

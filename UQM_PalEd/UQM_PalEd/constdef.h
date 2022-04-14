@@ -58,8 +58,10 @@
 #define DITHER_VARIANCE  (1 << (RANGE_SHIFT - 3))
 #define MAX_STORMS 8
 #define NUM_BAND_COLORS 4
+#define MAX_BANDS 18
 
-#define NUMBER_OF_PLANET_TYPES 51
+#define NUMBERS_OF_XLTS 15
+#define NUMBER_OF_PLANET_TYPES 59
 
 // macros
 #define MAX(a,b) (a > b ? a : b)

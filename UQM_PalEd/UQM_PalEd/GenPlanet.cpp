@@ -18,7 +18,7 @@
 #include <cstring>
 
 
-void GenPlanet::deltaTopography(int num_iterations, char* depthArray, RECT_UQM* pRect, int depth_delta)
+void GenPlanet::deltaTopography(short num_iterations, char* depthArray, RECT_UQM* pRect, short depth_delta)
 {// based of UQM source code
 	short width, height, delta_y;
 	struct
@@ -270,6 +270,25 @@ void GenPlanet::validateMap(char* depthArray, short width, short height)
 		}
 		last_byte = *lpDst++;
 	} while (--i);
+}
+
+void GenPlanet::handleImpurities(char* depthArray, short width, short height, bool gas)
+{
+	char* lpDst = depthArray;
+
+	if (gas)
+	{
+		for (int i = 0; i < width * height; i++, lpDst++)
+		{
+			if (*lpDst > 0)
+				*lpDst += 1;
+		}
+	}
+	else
+	{
+		for (int i = 0; i < width * height; i++, lpDst++)
+			*lpDst -= 1;
+	}
 }
 
 void GenPlanet::makeCrater(RECT_UQM* pRect, char* depthArray, short rim_delta, short crater_delta, bool SetDepth, unsigned short width)
@@ -596,62 +615,65 @@ void GenPlanet::makeGasGiant(short num_bands, char* depthArray, RECT_UQM* pRect,
 	unsigned int loword, hiword;
 	int rand_val;
 
-	if (num_bands > 19)
-		num_bands = 19;
+	if (num_bands > MAX_BANDS)
+		num_bands = MAX_BANDS;
 
-	band_height = MAP_HEIGHT / num_bands;
-	band_bump = MAP_HEIGHT % num_bands;
-	band_error = num_bands >> 1;
-	lpDst = depthArray;
-
-	band_delta = ((LOWORD(r->getUQMRandomValue())
-		& (NUM_BAND_COLORS - 1)) << RANGE_SHIFT)
-		+ (1 << (RANGE_SHIFT - 1));
-	last_y = next_y = 0;
-	for (i = num_bands; i > 0; --i)
+	if (num_bands != 0)
 	{
-		short cur_y;
+		band_height = MAP_HEIGHT / num_bands;
+		band_bump = MAP_HEIGHT % num_bands;
+		band_error = num_bands >> 1;
+		lpDst = depthArray;
 
-		rand_val = r->getUQMRandomValue();
-		loword = LOWORD(rand_val);
-		hiword = HIWORD(rand_val);
-
-		next_y += band_height;
-		if ((band_error -= band_bump) < 0)
+		band_delta = ((LOWORD(r->getUQMRandomValue())
+			& (NUM_BAND_COLORS - 1)) << RANGE_SHIFT)
+			+ (1 << (RANGE_SHIFT - 1));
+		last_y = next_y = 0;
+		for (i = num_bands; i > 0; --i)
 		{
-			++next_y;
-			band_error += num_bands;
+			short cur_y;
+
+			rand_val = r->getUQMRandomValue();
+			loword = LOWORD(rand_val);
+			hiword = HIWORD(rand_val);
+
+			next_y += band_height;
+			if ((band_error -= band_bump) < 0)
+			{
+				++next_y;
+				band_error += num_bands;
+			}
+			if (i == 1)
+				cur_y = pRect->height;
+			else
+			{
+				RECT_UQM r;
+
+				cur_y = next_y
+					+ ((band_height - 2) >> 1)
+					- ((LOBYTE(hiword) % (band_height - 2)) + 1);
+				cur_y = cur_y * pRect->height / MAP_HEIGHT;
+				r.x = r.y = 0;
+				r.width = pRect->width;
+				r.height = 5 * pRect->height / MAP_HEIGHT;
+				this->deltaTopography(50,
+					&depthArray[(cur_y - (r.height >> 1)) * r.width],
+					&r, depth_delta);
+			}
+
+			for (j = cur_y - last_y; j > 0; --j)
+			{
+				short k;
+
+				for (k = pRect->width; k > 0; --k)
+					*lpDst++ += band_delta;
+			}
+
+			last_y = cur_y;
+			band_delta = (band_delta
+				+ ((((LOBYTE(loword) & 1) << 1) - 1) << RANGE_SHIFT))
+				& (((1 << RANGE_SHIFT) * NUM_BAND_COLORS) - 1);
 		}
-		if (i == 1)
-			cur_y = pRect->height;
-		else
-		{
-			RECT_UQM r;
-
-			cur_y = next_y
-				+ ((band_height - 2) >> 1)
-				- ((LOBYTE(hiword) % (band_height - 2)) + 1);
-			cur_y = cur_y * pRect->height / MAP_HEIGHT;
-			r.x = r.y = 0;
-			r.width = pRect->width;
-			r.height = 5 * pRect->height / MAP_HEIGHT;
-			this->deltaTopography(50,
-				&depthArray[(cur_y - (r.height >> 1)) * r.width],
-				&r, depth_delta);
-		}
-
-		for (j = cur_y - last_y; j > 0; --j)
-		{
-			short k;
-
-			for (k = pRect->width; k > 0; --k)
-				*lpDst++ += band_delta;
-		}
-
-		last_y = cur_y;
-		band_delta = (band_delta
-			+ ((((LOBYTE(loword) & 1) << 1) - 1) << RANGE_SHIFT))
-			& (((1 << RANGE_SHIFT) * NUM_BAND_COLORS) - 1);
 	}
 
 	this->makeStorms(4 + (r->getUQMRandomValue() & 3) + 1,
@@ -686,14 +708,22 @@ void GenPlanet::generatePlanetSurface(char* depthArray, TopoFrame* desc)
 	rect.width = width;
 	rect.height = height;
 	{
-		//std::memset(depthArray, 0, width * height);
 		switch (desc->algo)
 		{
-		case GAS_GIANT_ALGO:
-			this->makeGasGiant(desc->num_faults,
-				depthArray, &rect, desc->fault_depth);
-			break;
-		case TOPO_ALGO:
+			case GAS_GIANT_ALGO:
+			{			
+				this->makeGasGiant(desc->num_faults, depthArray, &rect, desc->fault_depth);
+				break;
+			}
+			case TOPO_ALGO:
+			{
+				if (desc->num_faults)
+					this->deltaTopography(desc->num_faults,
+						depthArray, &rect,
+						desc->fault_depth);
+				this->validateMap(depthArray, width, height);
+				break;
+			}
 		case CRATERED_ALGO:
 			if (desc->num_faults)
 				this->deltaTopography(desc->num_faults,
@@ -753,10 +783,10 @@ void GenPlanet::generatePlanetSurface(char* depthArray, TopoFrame* desc)
 					-(desc->fault_depth << 2),
 					false, width);
 			}
-			if (desc->algo == CRATERED_ALGO)
-				this->ditherMap(depthArray, width, height);
+			this->ditherMap(depthArray, width, height);
 			this->validateMap(depthArray, width, height);
 			break;
 		}
 	}
+	this->handleImpurities(depthArray, width, height, desc->algo == GAS_GIANT_ALGO);
 }

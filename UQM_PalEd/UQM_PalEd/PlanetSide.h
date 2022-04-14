@@ -33,7 +33,7 @@ namespace UQMPalEd {
 	{
 	public:
 		PlanetSide(void);
-		PlanetSide(System::Drawing::Bitmap^ bmp);
+		PlanetSide(System::Drawing::Bitmap^ bmp, String^ name);
 
 	protected:
 		/// <summary>
