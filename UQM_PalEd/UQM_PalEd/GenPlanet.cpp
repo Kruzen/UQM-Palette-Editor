@@ -790,3 +790,8 @@ void GenPlanet::generatePlanetSurface(char* depthArray, TopoFrame* desc)
 	}
 	this->handleImpurities(depthArray, width, height, desc->algo == GAS_GIANT_ALGO);
 }
+
+int GenPlanet::getSeed(void)
+{
+	return r->getInitialSeedValue();
+}

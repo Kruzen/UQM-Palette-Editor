@@ -31,6 +31,7 @@ UQMPalEd::PlanetSide::PlanetSide(System::Drawing::Bitmap^ bmp, String^ name)
 {
 	InitializeComponent();
 
+	surface = bmp;
 	planetSurface->Image = bmp;
 	this->Text += name;
 }
@@ -38,4 +39,19 @@ UQMPalEd::PlanetSide::PlanetSide(System::Drawing::Bitmap^ bmp, String^ name)
 System::Void UQMPalEd::PlanetSide::ok_button_Click(System::Object^ sender, System::EventArgs^ e)
 {
     this->Close();
+}
+
+System::Void UQMPalEd::PlanetSide::save_button_Click(System::Object^ sender, System::EventArgs^ e)
+{
+	System::Windows::Forms::SaveFileDialog^ saveFileDialog = gcnew System::Windows::Forms::SaveFileDialog();
+	String^ fname;
+	saveFileDialog->Filter = "BMP|*.bmp";
+	saveFileDialog->FileName = "";
+	saveFileDialog->ShowDialog();
+	fname = saveFileDialog->FileName;
+
+	if (fname == "")
+		return;
+
+	surface->Save(fname, Imaging::ImageFormat::Bmp);
 }

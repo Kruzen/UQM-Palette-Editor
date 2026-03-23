@@ -370,7 +370,7 @@ void FManager::FileManager::writeCT(BinaryWriter^ bw, array<Byte>^ bytes)
 
         if (!isPlanet)
         {
-            start_index = 0x0A;
+            start_index = 0x35;
             end_index = start_index;
             int segs = paletteLengths[i] / MAX_COLORS_PER_TABLE;
 

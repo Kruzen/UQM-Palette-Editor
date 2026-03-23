@@ -40,6 +40,7 @@
 class RandomUQM
 {
 private:
+	int init;
 	int seed;
 public:
 	RandomUQM(void);
@@ -47,5 +48,6 @@ public:
 	~RandomUQM(void);
 
 	int getUQMRandomValue(void);
+	int getInitialSeedValue(void);
 };
 

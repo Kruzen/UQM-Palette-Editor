@@ -579,7 +579,26 @@ System::Void UQMPalEd::MainForm::tableViewer_Click(System::Object^ sender, Syste
 				Color positive = ct->getColorFromPalette(t_displayed, s_displayed, selected_index);
 				Color negative = Color::FromArgb(0xFF - positive.R, 0xFF - positive.G, 0xFF - positive.B);
 
-				g->DrawRectangle(gcnew Pen(negative, 3), INDEX_TO_X(selected_index) * 20, INDEX_TO_Y(selected_index) * 20, 20, 20);
+				if (positive.ToArgb() == Color::Gray.ToArgb())
+				{
+					negative = Color::Black;
+				}
+
+				if (Control::ModifierKeys == Keys::Shift)
+				{
+					for (int i = 0; i < ct->getPaletteColorCount(t_displayed); i++)
+					{
+						if (ct->getColorFromPalette(t_displayed, s_displayed, i) == positive) {
+							g->DrawRectangle(gcnew Pen(negative, 3), INDEX_TO_X(i) * 20, INDEX_TO_Y(i) * 20, 20, 20);
+						}
+					}
+				}
+				else
+				{
+					g->DrawRectangle(gcnew Pen(negative, 3), INDEX_TO_X(selected_index) * 20, INDEX_TO_Y(selected_index) * 20, 20, 20);
+				}
+				
+				
 
 				tableViewer->Image = b_bmp;
 
@@ -631,15 +650,31 @@ System::Void UQMPalEd::MainForm::genButton_Click(System::Object^ sender, System:
 	char* d = (char*)malloc(840*268);
 	GenPlanet* gp;
 	TopoFrame desc;
-	Bitmap^ tFrame = gcnew Bitmap(840, 268);
+	Bitmap^ tFrame = gcnew Bitmap(840, 268, Imaging::PixelFormat::Format8bppIndexed);
+	Imaging::ColorPalette^ pal = tFrame->Palette;
+	unsigned char* ptr;
+	int stride;
+	int seed;
 
+	for (int i = 0; i < 256; i++) 
+	{
+		pal->Entries[i] = ct->getColorFromPalette(t_displayed, s_displayed, i);
+	}
+	tFrame->Palette = pal;
 	
 	try
 	{
+		Imaging::BitmapData^ bmpData = tFrame->LockBits(
+			Drawing::Rectangle(0, 0, 840, 268),
+			Imaging::ImageLockMode::WriteOnly,
+			Imaging::PixelFormat::Format8bppIndexed
+		);
 		if (seedInput->Text != "")
 			gp = new GenPlanet(Convert::ToInt32(seedInput->Text));
 		else
 			gp = new GenPlanet();
+
+		seed = gp->getSeed();
 
 		desc.algo = algoChooser->SelectedIndex;
 		desc.num_faults = Convert::ToInt32(gpFaults->Text);
@@ -651,19 +686,23 @@ System::Void UQMPalEd::MainForm::genButton_Click(System::Object^ sender, System:
 		gp->generatePlanetSurface(d, &desc);
 		delete gp;
 
-		
+		ptr = (unsigned char*)bmpData->Scan0.ToPointer();
+		stride = bmpData->Stride;
+
 		short c;
 		char* pSrc = d;
-		for (short i = 0; i < 268; ++i)
+
+		for (int y = 0; y < 268; y++)
 		{
-			for (short j = 0; j < 840; ++j, ++pSrc)
+			unsigned char* row = ptr + y * stride;
+			for (int x = 0; x < 840; x++, ++pSrc)
 			{
 				c = *pSrc;
 				if (desc.algo == GAS_GIANT_ALGO)
 				{
 					c &= 0xFF;
 				}
-				else				
+				else
 				{
 					c += desc.base_elevation;//(int)((float)(desc.base_elevation) * 1.3);
 					if (c < 0)
@@ -671,16 +710,19 @@ System::Void UQMPalEd::MainForm::genButton_Click(System::Object^ sender, System:
 					if (c > 255)
 						c = 255;
 				}
-				tFrame->SetPixel(j, i, ct->getColorFromPPalette(t_displayed, s_displayed, xlt[c] - 128));
-			}			
+				row[x] = (unsigned char)(xlt[c] - 128);
+			}
 		}
+
+		tFrame->UnlockBits(bmpData);
 	}
 	catch (Exception^ e)
 	{
 		this->invokeMessageBox(e->Message, true);
 	}
 	free(d);
-	String^ vals = "(" + desc.num_faults + "," + desc.fault_depth + "," + desc.num_blemishes + "," + desc.base_elevation + ")";
+	String^ vals = "(" + desc.num_faults + "," + desc.fault_depth + "," + desc.num_blemishes + "," + desc.base_elevation + ")"
+		+ " Seed: " + seed;
 	String^ name = ": " + Path::GetFileName(fileName) + " + " + load_xltButton->Text + vals;
 	PlanetSide^ ps = gcnew PlanetSide(tFrame, name);
 	ps->Show();

@@ -827,7 +827,7 @@ namespace UQMPalEd {
 			this->MinimumSize = System::Drawing::Size(640, 500);
 			this->Name = L"MainForm";
 			this->StartPosition = System::Windows::Forms::FormStartPosition::CenterScreen;
-			this->Text = L"Ur-Quan Masters Palette Editor v0.1.7";
+			this->Text = L"Ur-Quan Masters Palette Editor v0.1.8";
 			this->MouseClick += gcnew System::Windows::Forms::MouseEventHandler(this, &MainForm::MainForm_MouseClick);
 			this->menuStrip->ResumeLayout(false);
 			this->menuStrip->PerformLayout();

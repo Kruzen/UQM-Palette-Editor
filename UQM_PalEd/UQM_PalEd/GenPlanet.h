@@ -43,6 +43,7 @@ public:
 	~GenPlanet(void);
 public:
 	void generatePlanetSurface(char* depthArray, TopoFrame* desc);
+	int getSeed(void);
 };
 
 

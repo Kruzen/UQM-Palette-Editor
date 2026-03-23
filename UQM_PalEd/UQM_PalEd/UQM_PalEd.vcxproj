@@ -74,7 +74,7 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <TargetName>UQM Palette Editor 0.1.5</TargetName>
+    <TargetName>UQM Palette Editor 0.1.9</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <TargetName>UQM Palette Editor v0.1.5(x86)</TargetName>

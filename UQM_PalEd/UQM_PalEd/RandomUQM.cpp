@@ -31,6 +31,7 @@ RandomUQM::RandomUQM(void)
 {
 	srand(time(NULL));
 	this->seed = std::rand();
+	this->init = this->seed;
 }
 
 RandomUQM::RandomUQM(int value)
@@ -40,6 +41,7 @@ RandomUQM::RandomUQM(int value)
 	else if (value > M) /* and less than M */
 		value -= M;
 	this->seed = value;
+	this->init = value;
 }
 
 RandomUQM::~RandomUQM(void)
@@ -55,4 +57,9 @@ int RandomUQM::getUQMRandomValue(void)
 		return (seed);
 	else
 		return (seed = 1L);
+}
+
+int RandomUQM::getInitialSeedValue(void)
+{
+	return init;
 }

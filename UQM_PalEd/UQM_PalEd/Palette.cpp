@@ -124,8 +124,8 @@ void CPalette::Segment::fillArray(array<Color>^ c)
 }
 Color CPalette::Segment::getColor(int c_index)
 {
-	if (c_index < 0 || c_index > length)
-		return colors[0];
+	if (c_index < 0 || c_index >= length)
+		return Color::Black;
 
 	return colors[c_index];
 }

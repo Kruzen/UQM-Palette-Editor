@@ -34,6 +34,8 @@ namespace UQMPalEd {
 	public:
 		PlanetSide(void);
 		PlanetSide(System::Drawing::Bitmap^ bmp, String^ name);
+	private:
+		Bitmap^ surface;
 
 	protected:
 		/// <summary>
@@ -51,6 +53,7 @@ namespace UQMPalEd {
 
 	protected:
 	private: System::Windows::Forms::Button^ ok_button;
+	private: System::Windows::Forms::Button^ button1;
 
 	private:
 		/// <summary>
@@ -68,6 +71,7 @@ namespace UQMPalEd {
 			System::ComponentModel::ComponentResourceManager^ resources = (gcnew System::ComponentModel::ComponentResourceManager(PlanetSide::typeid));
 			this->planetSurface = (gcnew System::Windows::Forms::PictureBox());
 			this->ok_button = (gcnew System::Windows::Forms::Button());
+			this->button1 = (gcnew System::Windows::Forms::Button());
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->planetSurface))->BeginInit();
 			this->SuspendLayout();
 			// 
@@ -82,13 +86,23 @@ namespace UQMPalEd {
 			// 
 			// ok_button
 			// 
-			this->ok_button->Location = System::Drawing::Point(397, 287);
+			this->ok_button->Location = System::Drawing::Point(429, 287);
 			this->ok_button->Name = L"ok_button";
 			this->ok_button->Size = System::Drawing::Size(75, 23);
 			this->ok_button->TabIndex = 1;
-			this->ok_button->Text = L"OK";
+			this->ok_button->Text = L"Close";
 			this->ok_button->UseVisualStyleBackColor = true;
 			this->ok_button->Click += gcnew System::EventHandler(this, &PlanetSide::ok_button_Click);
+			// 
+			// button1
+			// 
+			this->button1->Location = System::Drawing::Point(348, 287);
+			this->button1->Name = L"button1";
+			this->button1->Size = System::Drawing::Size(75, 23);
+			this->button1->TabIndex = 2;
+			this->button1->Text = L"Save";
+			this->button1->UseVisualStyleBackColor = true;
+			this->button1->Click += gcnew System::EventHandler(this, &PlanetSide::save_button_Click);
 			// 
 			// PlanetSide
 			// 
@@ -97,6 +111,7 @@ namespace UQMPalEd {
 			this->BackColor = System::Drawing::SystemColors::ActiveBorder;
 			this->ClientSize = System::Drawing::Size(866, 318);
 			this->ControlBox = false;
+			this->Controls->Add(this->button1);
 			this->Controls->Add(this->ok_button);
 			this->Controls->Add(this->planetSurface);
 			this->Icon = (cli::safe_cast<System::Drawing::Icon^>(resources->GetObject(L"$this.Icon")));
@@ -111,5 +126,6 @@ namespace UQMPalEd {
 		}
 #pragma endregion
 	private: System::Void ok_button_Click(System::Object^ sender, System::EventArgs^ e);
+	private: System::Void save_button_Click(System::Object^ sender, System::EventArgs^ e);
 	};
 }
